@@ -33,8 +33,8 @@ int main ()
 
   std::vector<float> energy_denominators{12, 11.2, 10.5, 10, 9.5, 8.8, 8, 7};
 
-  const auto noOfInitialPoints = 30;
-  const double time_integration = 40000.0;
+  const auto noOfInitialPoints = 3;
+  const double time_integration = 400.0;
   Gnuplot g1;
 
   g1 << "set term pdfcairo enhanced font \"Arial,30\" size 11.7in,16.5in\n"
