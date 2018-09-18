@@ -59,7 +59,7 @@ target_compile_options(henon_heiles PRIVATE
         -Wformat=2
 
         $<$<CONFIG:Release>:
-        -O2
+        -O3
         -march=native
         >
         )
