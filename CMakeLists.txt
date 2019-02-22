@@ -63,3 +63,20 @@ target_compile_options(henon_heiles PRIVATE
         -march=native
         >
         )
+
+add_executable( state_observer utilities.hpp state_observer/state_observer.cpp)
+target_link_libraries(state_observer Boost::boost)
+target_compile_options(state_observer PRIVATE
+        -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
+        -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
+        -Wconversion -Wsign-conversion -Wmisleading-indentation
+        -Wduplicated-cond -Wduplicated-branches -Wlogical-op
+        -Wnull-dereference -Wuseless-cast -Wdouble-promotion
+        -Wformat=2
+
+        $<$<CONFIG:Release>:
+        -O3
+        -march=native
+        >
+        )
+
