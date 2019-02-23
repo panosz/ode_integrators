@@ -65,3 +65,4 @@ polyfitTest
 src/examples/data
 cmake-build-release
 Build-Debug
+venv/

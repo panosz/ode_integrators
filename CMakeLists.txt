@@ -4,6 +4,7 @@ project(ode_integrators)
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(Boost REQUIRED)
+
 find_package(gnuplot_iostream REQUIRED)
 
 
@@ -65,7 +66,7 @@ target_compile_options(henon_heiles PRIVATE
         )
 
 add_executable( state_observer utilities.hpp state_observer/state_observer.cpp)
-target_link_libraries(state_observer Boost::boost)
+target_link_libraries(state_observer Boost::boost myUtilities::myUtilities)
 target_compile_options(state_observer PRIVATE
         -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
         -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
