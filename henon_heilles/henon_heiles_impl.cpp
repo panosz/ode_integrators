@@ -5,7 +5,7 @@
 #include <cmath>
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/tools/roots.hpp>
-#include "myUtilities.hpp"
+#include "myUtilities/myUtilities.hpp"
 #include <boost/range/algorithm_ext/push_back.hpp>
 #include <boost/numeric/odeint.hpp>
 
