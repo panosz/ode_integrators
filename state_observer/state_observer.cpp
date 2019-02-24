@@ -4,49 +4,61 @@
 
 #include <iostream>
 #include <fstream>
+#include <string_view>
 #include <vector>
+#include <stdexcept>
+
 #include <boost/numeric/odeint.hpp>
 #include "../utilities.hpp"
 #include <boost/range/iterator_range.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
 #include <myUtilities/zero_crossing.hpp>
+#include <myUtilities/wrap.hpp>
 
 using namespace boost::numeric::odeint;
 
 /* The type of container used to hold the state vector */
-typedef std::vector<double> State;
+typedef std::array<double, 3> State;
+
+std::ostream& operator<< (std::ostream& os, const State& s)
+{
+  for (const auto& item :s)
+    os << item << ' ';
+  return os;
+}
 
 class System {
  public:
   System () = default;
 
-  void operator() (const State& x, State& dxdt, const double /*t*/)
+  void operator() (const State& s, State& dsdt, const double /*t*/)
   {
-    dxdt[0] = -sin(x[1]);
-    dxdt[1] = x[0];
+    dsdt[0] = -sin(s[1]);
+    dsdt[1] = s[0];
+    dsdt[2] = -cos(s[1]);
 
   }
 };
 
-class SystemCrossSurface {
+class SystemNormalToSurface {
  private:
   System sys_;
-  int index;
+  unsigned index;
 
  public:
-  SystemCrossSurface (System sys, int surface_index)
+  SystemNormalToSurface (System sys, unsigned surface_index)
       : sys_{sys}, index{surface_index}
   { }
 
-  void operator() (const State& x, State& dxdt, const double t)
+  void operator() (const State& s, State& dsdt, const double t)
   {
-    sys_(x, dxdt, t);
+    sys_(s, dsdt, t);
 
-    const auto normalization = dxdt[index];
+    const auto normalization = dsdt[index];
 
-    for (auto& p : dxdt)
-      p = p / normalization;
+    for (auto& item : dsdt)
+      item = item / normalization;
 
   }
 
@@ -60,56 +72,130 @@ double event_surface (const State& s)
 using ErrorStepperType = runge_kutta_cash_karp54<State>;
 using ControlledStepperType = controlled_runge_kutta<ErrorStepperType>;
 
-State step_on_surface (SystemCrossSurface scf, State s, ErrorStepperType stepper)
+template<typename Functor>
+State step_on_surface (SystemNormalToSurface systemNormalToSurface, Functor surface, State s, ErrorStepperType stepper)
 {
-  State state_on_surface{0,0};
-  double distance_from_surface = -event_surface(s);
-  stepper.do_step(scf,s,0,state_on_surface,distance_from_surface);
-  std::cout << "step_on_surface. from "<<s[0]<<','<<s[1]<<'\n';
+  State state_on_surface{};
+  double distance_from_surface = -surface(s);
+  stepper.do_step(systemNormalToSurface, s, 0, state_on_surface, distance_from_surface);
   return state_on_surface;
+}
+
+struct OrbitCrossOutput {
+    State initial_point{};
+    std::vector<State> cross_points{};
+};
+
+std::ostream& operator<< (std::ostream& os, const OrbitCrossOutput& orbitCrossOutput)
+{
+  os << "# initial point:\n";
+  os << orbitCrossOutput.initial_point << '\n';
+  os << "# cross points:\n";
+  for (const auto& item : orbitCrossOutput.cross_points)
+    os << item << '\n';
+  return os;
+}
+
+struct IntegrationOptions {
+    double abs_err;
+    double rel_err;
+    double dt;
+
+    IntegrationOptions (double abs_error, double rel_error, double init_time_step)
+        : abs_err{abs_error}, rel_err{rel_error}, dt{init_time_step}
+    { }
+};
+
+template<typename Functor>
+OrbitCrossOutput pick_orbit_points_that_cross_surface (System sys,
+                                                       Functor surface,
+                                                       State init_state,
+                                                       double integration_time,
+                                                       int direction,
+                                                       IntegrationOptions options)
+{
+  OrbitCrossOutput output{};
+  output.initial_point = init_state;
+
+  const double integration_start_time = 0;
+
+  const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType());
+
+  auto orbit_iterators = make_adaptive_range(controlled_stepper,
+                                             sys, init_state, integration_start_time, integration_time, options.dt);
+  auto orbit_points = boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
+
+  PanosUtilities::zero_cross_transformed(orbit_points, std::back_inserter(output.cross_points),
+                                         surface, direction);
+
+  return output;
+}
+
+template<typename Functor>
+OrbitCrossOutput trace_cross_points_on_cross_surface (SystemNormalToSurface systemNormalToSurface,
+                                                      Functor surface,
+                                                      const OrbitCrossOutput& approximate_cross_output
+                                                     )
+{
+  OrbitCrossOutput output{};
+  output.initial_point = approximate_cross_output.initial_point;
+
+  const auto my_projection = [systemNormalToSurface, surface] (State s)
+  { return step_on_surface(systemNormalToSurface, surface, s, ErrorStepperType()); };
+
+  boost::push_back(output.cross_points,
+                   approximate_cross_output.cross_points | boost::adaptors::transformed(my_projection));
+
+  return output;
+}
+
+
+
+void write_to_file(const char* filename, const OrbitCrossOutput & orbitCrossOutput)
+{
+  std::ofstream file(filename);
+  if (!file)
+    throw std::runtime_error("cannot open output file");
+
+  file<<orbitCrossOutput;
+
+  file.close();
 }
 
 int main ()
 {
 
-  const double abs_err = 1.0e-16;
-  const double rel_err = 1.0e-16;
-  const double max_dt = 0.001;
-  const auto controlled_stepper = make_controlled(abs_err, rel_err, max_dt, ErrorStepperType());
+  const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
 
-  State init_state{1.1, 0};
+  const int zero_cross_positive_direction = 1;
+  const double integration_time = 1000;
+
+  State init_state{1.1, 0, 0};
   auto my_sys = System();
-  auto my_cross_sys = SystemCrossSurface(my_sys,0);
-
-  auto orbit_iterators = make_adaptive_range(controlled_stepper, System(), init_state, 0.0, 10.0, 1e-5);
-  auto orbit_points = boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
-
-  std::vector<State> zero_cross_points{};
-  PanosUtilities::zero_cross_transformed(orbit_points, std::back_inserter(zero_cross_points), event_surface);
-  std::cout << "we have as many as " << zero_cross_points.size() << " zero cross points\n";
-
-//  boost::push_back(zero_cross_points,orbit_points);
-
-//  std::ofstream outfile("dummy.txt");
-//
-//  for (auto out:orbit_points)
-//    outfile << out.second <<' '<< out.first[0]<<' '<< out.first[1] << '\n';
-////
-//  outfile.close();
+  auto my_cross_sys = SystemNormalToSurface(my_sys, 0);
 
 
-  std::cout << "zero_cross:\n";
-  for (auto out:zero_cross_points)
-    std::cout << out[0] << ' ' << out[1] << '\n';
+  const auto approximate_cross_output = pick_orbit_points_that_cross_surface(my_sys, event_surface,
+                                                                             init_state, integration_time,
+                                                                             zero_cross_positive_direction,
+                                                                             options);
 
-  std::vector<State> on_surface_points{};
+  const auto exact_on_surface_output = trace_cross_points_on_cross_surface(my_cross_sys,
+                                                                           event_surface,
+                                                                           approximate_cross_output
+                                                                          );
 
-  const auto my_projection = [my_cross_sys](State s){return step_on_surface(my_cross_sys,s,ErrorStepperType());};
 
-  boost::push_back(on_surface_points, zero_cross_points| boost::adaptors::transformed(my_projection));
+  std::cout << "we have as many as " << approximate_cross_output.cross_points.size() << " zero cross points\n";
 
-  std::cout << "zero_cross projection:\n";
-  for (auto out:on_surface_points)
-    std::cout << out[0] << ' ' << out[1] << '\n';
+  std::cout << "approximate cross output:\n";
+  std::cout << approximate_cross_output << '\n';
+
+  write_to_file("approximate_cross_output.txt", approximate_cross_output);
+  std::cout << "exact cross output:\n";
+  std::cout << exact_on_surface_output << '\n';
+
+  write_to_file("exact_cross_output.txt", exact_on_surface_output);
+
 
 }
