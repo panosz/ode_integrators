@@ -30,11 +30,12 @@ std::ostream& operator<< (std::ostream& os, const State& s)
 
 class System {
  public:
-  System () = default;
+  const double F_factor;
+  System(double f):F_factor{f}{};
 
   void operator() (const State& s, State& dsdt, const double /*t*/)
   {
-    dsdt[0] = -sin(s[1]);
+    dsdt[0] = -F_factor*sin(s[1]);
     dsdt[1] = s[0];
     dsdt[2] = -cos(s[1]);
 
@@ -64,9 +65,21 @@ class SystemNormalToSurface {
 
 };
 
-double event_surface (const State& s)
+
+
+double p_surface (const State& s)
 {
   return s[0];
+}
+
+double q_surface (const State& s)
+{
+  return s[1];
+}
+
+double chi_surface(const State& s)
+{
+  return s[2];
 }
 
 using ErrorStepperType = runge_kutta_cash_karp54<State>;
@@ -157,10 +170,18 @@ void write_to_file(const char* filename, const OrbitCrossOutput & orbitCrossOutp
   if (!file)
     throw std::runtime_error("cannot open output file");
 
+  file<< std::setprecision(16);
   file<<orbitCrossOutput;
 
   file.close();
 }
+
+
+struct ApprocimateAndExactCrossOutput
+{
+    OrbitCrossOutput approximate;
+    OrbitCrossOutput exact;
+};
 
 int main ()
 {
@@ -170,18 +191,22 @@ int main ()
   const int zero_cross_positive_direction = 1;
   const double integration_time = 1000;
 
-  State init_state{1.1, 0, 0};
-  auto my_sys = System();
-  auto my_cross_sys = SystemNormalToSurface(my_sys, 0);
+  State init_state{1., 0, 0};
+  const double F_factor = 1.0;
+  auto my_sys = System(F_factor);
+
+  auto my_cross_sys = SystemNormalToSurface(my_sys, 1);
+
+  auto my_surface = q_surface;
 
 
-  const auto approximate_cross_output = pick_orbit_points_that_cross_surface(my_sys, event_surface,
+  const auto approximate_cross_output = pick_orbit_points_that_cross_surface(my_sys, my_surface,
                                                                              init_state, integration_time,
                                                                              zero_cross_positive_direction,
                                                                              options);
 
   const auto exact_on_surface_output = trace_cross_points_on_cross_surface(my_cross_sys,
-                                                                           event_surface,
+                                                                           my_surface,
                                                                            approximate_cross_output
                                                                           );
 
