@@ -9,7 +9,7 @@ def wrap2pi( x):
     return x - 2*np.pi*np.floor_divide(x,2*np.pi)
 
 
-a = sp.loadtxt('../cmake-build-release/exact_cross_output.txt')
+a = sp.loadtxt('../cmake-build-release/cross_exact.txt')
 
 
 fig, ax = plt.subplots(1, 1)
