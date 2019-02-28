@@ -6,6 +6,39 @@
 
 #include "orbit_classes.hpp"
 #include "general_file_io.hpp"
+#include "myUtilities/data_reading.hpp"
+
+template<typename State>
+std::vector<State> get_state_from_file (const char *input_filename, unsigned number_of_dimensions)
+{
+  std::vector<State> states{};
+
+  auto input_file = open_input_file(input_filename);
+
+
+  for (std::string line; getline(input_file, line);)
+    {
+      auto cleared_line = PanosUtilities::trimm_comments(line, "#");
+      if (!cleared_line.empty())
+        {
+          const auto state_coordinates = PanosUtilities::doubles_from_string(cleared_line);
+
+          if (state_coordinates.size() != number_of_dimensions)
+            throw std::runtime_error("get_state_from_file: Unexpected number of coordinates, expecting " +
+                                     std::to_string(number_of_dimensions)+ " got "+
+                                     std::to_string(state_coordinates.size()));
+
+          State  input_state;
+          boost::copy(state_coordinates,input_state.begin());
+          states.push_back(input_state);
+        }
+
+    }
+
+  return states;
+}
+
+
 
 template <typename State>
 void write_to_files (const char *filename, const ApproximateAndExactCrossOutput<State>& crossOutput)

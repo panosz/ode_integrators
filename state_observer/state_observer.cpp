@@ -93,30 +93,33 @@ namespace DS
 }
 //void write_to_files(const char* filename_)
 
-int main ()
+
+int main (int argc, char* argv[])
 {
+
+  if (argc<2)
+    throw std::runtime_error("input_filename must be specified.");
+
+
+
+  const auto input_filename = argv[1];
+
+  const auto init_states =
+      get_state_from_file<DS::ExtendedHarmonicOscillator::StateType >(input_filename, 3);
+
+  std::cout <<"Init States:\n"<<init_states<<'\n';
+
 
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
 
   const int zero_cross_positive_direction = 1;
   const double zero_cross_position = 0.0;
-  const double integration_time = 1000;
+  const double integration_time = 10030;
 
-  std::vector<DS::ExtendedHarmonicOscillator::StateType >
-      init_states{
-      {1.,         0, 0},
-      {1.09388829, 0, 0}, // G=3/4
-      {1.4,        0, 0},
-      {.08,        0, 0},
-      {.7,         0, 0},
-      {1.23941324,0,0}, // G=2/3
-      {1.15,0,0},
-      {0.5,0,0},
-      {0.2,0,0},
-      {0.1,0,0},
-      {1.45956452,0,0}, //G = 1/2
-      {1.5,0,0}
-  };
+
+
+
+
   const double F_factor = 1.0;
   auto my_sys = DS::ExtendedHarmonicOscillator(F_factor);
 
@@ -128,14 +131,8 @@ int main ()
 
   auto poincare_points = trace_on_poincare_surface(my_system_and_pc, init_states, integration_time, options);
 
-//  std::cout << "we have as many as " << poincare_points.approximate.cross_points.size() << " zero cross points\n";
-//
-//  std::cout << "approximate cross output:\n";
-//  std::cout << poincare_points.approximate << '\n';
-//
-//  std::cout << "exact cross output:\n";
-//  std::cout << poincare_points.exact << '\n';
 
   write_to_files("cross", poincare_points);
 
+  return 0;
 }
