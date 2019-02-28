@@ -20,27 +20,77 @@
 
 
 /* The type of container used to hold the state vector */
+namespace DS
+{
+    class StateWrapper {
+      using T=std::array<double,3>;
+     private:
+      T s_{};
 
-class ExtendedHarmonicOscillator {
- public:
-  using StateType = std::array<double,3>;
-  const double F_factor;
-  explicit ExtendedHarmonicOscillator (double f)
-      : F_factor{f}
-  { };
+     public:
+      using value_type = typename T::value_type;
+      using  iterator =  typename T::iterator ;
+      using const_iterator = typename T::const_iterator ;
 
-  void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
-  {
-    dsdt[0] = -F_factor * sin(s[1]);
-    dsdt[1] = s[0];
-    dsdt[2] = -cos(s[1]);
+      StateWrapper (value_type x, value_type y, value_type z)
+          : s_{x, y, z}
+      { };
+      StateWrapper () = default;
 
-  }
-};
+      value_type& operator[] (unsigned i)
+      { return s_[i]; };
 
+      value_type operator[] (unsigned i) const
+      { return s_[i]; };
 
+      auto begin ()
+      {
+        return s_.begin();
+      }
 
+      auto begin () const
+      {
+        return s_.begin();
+      }
 
+      auto end ()
+      {
+        return s_.end();
+      }
+
+      auto end () const
+      {
+        return s_.end();
+      }
+
+    };
+
+    std::ostream& operator<< (std::ostream& os, const StateWrapper& state)
+    {
+      {
+        boost::copy(state, std::ostream_iterator<typename StateWrapper::value_type>(os, " "));
+        return os;
+      }
+    }
+
+    class ExtendedHarmonicOscillator {
+     public:
+      using StateType = StateWrapper;
+      const double F_factor;
+      explicit ExtendedHarmonicOscillator (double f)
+          : F_factor{f}
+      { };
+
+      void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
+      {
+        dsdt[0] = -F_factor * sin(s[1]);
+        dsdt[1] = s[0];
+        dsdt[2] = -cos(s[1]);
+
+      }
+    };
+
+}
 //void write_to_files(const char* filename_)
 
 int main ()
@@ -52,7 +102,7 @@ int main ()
   const double zero_cross_position = 0.0;
   const double integration_time = 1000;
 
-  std::vector<ExtendedHarmonicOscillator::StateType >
+  std::vector<DS::ExtendedHarmonicOscillator::StateType >
       init_states{
       {1.,         0, 0},
       {1.09388829, 0, 0}, // G=3/4
@@ -68,7 +118,7 @@ int main ()
       {1.5,0,0}
   };
   const double F_factor = 1.0;
-  auto my_sys = ExtendedHarmonicOscillator(F_factor);
+  auto my_sys = DS::ExtendedHarmonicOscillator(F_factor);
 
   const auto my_poincare_surface = Surface{VariableTag::q,
                                            zero_cross_position,
