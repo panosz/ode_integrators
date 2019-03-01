@@ -25,7 +25,7 @@ template<typename System>
 class SystemAndPoincareSurface {
  private:
   System sys_;
-  const Surface surf_;
+  Surface surf_;
 
  public:
   using StateType = typename System::StateType;
@@ -33,7 +33,8 @@ class SystemAndPoincareSurface {
       : sys_{sys}, surf_{surf}
   { }
 
-  void eval (const StateType & s, StateType& dsdt, const double t) const
+
+  void operator() (const StateType & s, StateType& dsdt, const double t) const
   {
     sys_(s, dsdt, t);
   }

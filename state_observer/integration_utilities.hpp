@@ -18,7 +18,7 @@
 using namespace boost::numeric::odeint;
 
 template<typename System>
-using ErrorStepperType = runge_kutta_cash_karp54<typename System::StateType>;
+using ErrorStepperType = runge_kutta_cash_karp54<typename System::StateType, double, typename System::StateType, double, vector_space_algebra>;
 
 template<typename System>
 using ControlledStepperType = controlled_runge_kutta<ErrorStepperType<System> >;
@@ -65,13 +65,10 @@ pick_orbit_points_that_cross_surface (SystemAndPoincareSurface<System> sys,
 
   const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType<System>());
 
-  auto running_sys = [sys] (const typename System::StateType& s,
-                            typename System::StateType& dsdt,
-                            const double t)
-  { sys.eval(s, dsdt, t); };
+
 
   auto orbit_iterators = make_adaptive_range(controlled_stepper,
-                                             running_sys,
+                                             sys,
                                              init_state, integration_start_time, integration_time, options.dt);
 
   auto orbit_points = boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
@@ -79,9 +76,15 @@ pick_orbit_points_that_cross_surface (SystemAndPoincareSurface<System> sys,
   auto surface_fun = [sys] (const typename System::StateType& s)
   { return sys.surface_eval(s); };
 
+  std::cout << "start following orbit" << std::endl;
+
+
+//  for (auto it=orbit_iterators.first; it!=orbit_iterators.second;++it);
+
   PanosUtilities::zero_cross_transformed(orbit_points, std::back_inserter(output.cross_points),
                                          surface_fun, sys.poincare_surface().direction);
 
+  std::cout << "calculated " << output.cross_points.size() << " cross points" << std::endl;
   return output;
 }
 
