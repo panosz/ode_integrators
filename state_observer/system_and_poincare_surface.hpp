@@ -9,7 +9,8 @@
 enum class VariableTag : unsigned {
   p = 0,
   q = 1,
-  chi = 2
+  F = 2,
+  chi = 3
 };
 
 struct Surface {

@@ -17,21 +17,19 @@ namespace DS
     class StateWrapper : boost::additive<StateWrapper, boost::additive<StateWrapper, double,
         boost::multiplicative<StateWrapper, double>
     > > {
-      using T=std::array<double, 3>;
+      using T=std::array<double, 4>;
      private:
-      T s_{0, 0, 0};
+      T s_{0, 0, 0, 0};
 
      public:
       using value_type = typename T::value_type;
       using iterator =  typename T::iterator;
       using const_iterator = typename T::const_iterator;
 
-      StateWrapper (value_type
-                    x, value_type y, value_type z)
-          : s_{x, y, z}
+      StateWrapper (value_type p, value_type q, value_type F, value_type chi)
+          : s_{p, q, F, chi}
       { };
       StateWrapper ()
-          : s_{{0, 0, 0}}
       { };
 
       inline value_type& operator[] (unsigned i)
