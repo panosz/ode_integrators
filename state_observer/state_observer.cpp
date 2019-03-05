@@ -9,7 +9,7 @@
 #include <cmath>
 
 #include "orbit_classes.hpp"
-#include "state_wrapper.hpp"
+#include "armadillo_state.hpp"
 #include "state_specific_file_io.hpp"
 #include "system_and_poincare_surface.hpp"
 #include "integration_utilities.hpp"
@@ -20,12 +20,14 @@
 namespace DS
 {
 
-    StateWrapper unperturbedExtendedHOderivatives (const StateWrapper& s)
+    using myState = armadillo_state;
+
+    myState unperturbedExtendedHOderivatives (const myState& s)
     {
       const auto& q = s[1];
       const auto& F = s[2];
 
-      return StateWrapper{
+      return myState{
           -F * sin(q),
           s[0],
           0,
@@ -41,7 +43,7 @@ namespace DS
             : q_harmonic(qHarmonic), chi_harmonic(chiHarmonic)
         { }
 
-        double phase (const StateWrapper& s) const
+        double phase (const myState& s) const
         {
           const auto& q = s[1];
           const auto& chi = s[3];
@@ -49,14 +51,14 @@ namespace DS
           return q_harmonic * q + chi_harmonic * chi;
         }
 
-        StateWrapper operator() (const StateWrapper& s, double /*t*/) const
+        myState operator() (const myState& s, double /*t*/) const
         {
           const auto myCos = cos(phase(s));
 
           const auto dpdt = -q_harmonic * myCos;
           const auto dFdt = -chi_harmonic * myCos;
 
-          return StateWrapper{dpdt, 0, dFdt, 0};
+          return myState{dpdt, 0, dFdt, 0};
 
         }
 
@@ -67,7 +69,7 @@ namespace DS
       double amplitude_ = 0;
       SinePerturbation perturb_;
      public:
-      using StateType = StateWrapper;
+      using StateType = myState;
 
       ExtendedHarmonicOscillator (double amplitude, const SinePerturbation& perturb)
           : amplitude_(amplitude), perturb_(perturb)
