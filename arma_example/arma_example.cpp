@@ -5,6 +5,7 @@
 #include <boost/numeric/odeint.hpp>
 #include <armadillo>
 #include <cmath>
+#include <boost/range/algorithm_ext/push_back.hpp>
 
 using namespace arma;
 using namespace boost::numeric::odeint;
@@ -34,6 +35,20 @@ void h_o (const stateType& x, stateType& dxdt, double /*t*/)
   dxdt[1] = x[0];
 }
 
+arma::mat fill_matrix_by_row (std::vector<stateType> rows)
+{
+  arma::mat out;
+
+  if (!rows.empty())
+  out.set_size(rows.size(),stateType::n_elem);
+
+  for (int i = 0; i < rows.size(); ++i)
+    {
+      out.row(i) = rows[i];
+    }
+  return out;
+}
+
 int main ()
 {
 
@@ -51,7 +66,13 @@ int main ()
 
   auto orbit_points = boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
 
+
   std::cout<<"integrate orbit\n";
-  for (const auto & p: orbit_points)
-    std::cout<< p;
+
+  std::vector<stateType> points;
+  boost::push_back(points,orbit_points);
+
+  mat Out = fill_matrix_by_row(points);
+
+  std::cout<<Out;
 }
