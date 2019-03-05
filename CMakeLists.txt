@@ -81,3 +81,7 @@ target_compile_options(state_observer PRIVATE
         >
         )
 
+add_executable(arma_example arma_example/arma_example.cpp)
+target_include_directories(arma_example PUBLIC ${ARMADILLO_INCLUDE_DIRS})
+target_link_libraries(arma_example Boost::boost myUtilities::myUtilities armadillo)
+
