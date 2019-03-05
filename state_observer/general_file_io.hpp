@@ -12,7 +12,7 @@ std::ifstream open_input_file(const char *input_filename);
 
 
 
-std::pair<std::ofstream,std::ofstream> prepare_files_for_output (const char *filename);
+std::pair<std::ofstream,std::ofstream> prepare_text_files_for_output (const char *filename);
 
 
 

@@ -44,7 +44,7 @@ template <typename State>
 void write_to_files (const char *filename, const ApproximateAndExactCrossOutput<State>& crossOutput)
 {
 
-  auto[exact_file, approx_file] = prepare_files_for_output(filename);
+  auto[exact_file, approx_file] = prepare_text_files_for_output(filename);
 
   exact_file << crossOutput.exact;
   approx_file << crossOutput.approximate;
@@ -57,7 +57,7 @@ void write_to_files (const char *filename, const ApproximateAndExactCrossOutput<
 template <typename State>
 void write_to_files (const char *filename, const std::vector<ApproximateAndExactCrossOutput<State>>& crossOutputs)
 {
-  auto[exact_file, approx_file] = prepare_files_for_output(filename);
+  auto[exact_file, approx_file] = prepare_text_files_for_output(filename);
 
   for (const auto& out : crossOutputs)
     {
