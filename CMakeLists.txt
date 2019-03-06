@@ -65,7 +65,7 @@ target_compile_options(henon_heiles PRIVATE
         >
         )
 
-add_executable( state_observer utilities.hpp state_observer/state_observer.cpp state_observer/general_file_io.cpp state_observer/general_file_io.hpp state_observer/state_specific_file_io.cpp state_observer/state_specific_file_io.hpp state_observer/orbit_classes.cpp state_observer/orbit_classes.hpp state_observer/system_and_poincare_surface.cpp state_observer/system_and_poincare_surface.hpp state_observer/integration_utilities.cpp state_observer/integration_utilities.hpp state_observer/state_wrapper.cpp state_observer/state_wrapper.hpp state_observer/armadillo_state.hpp)
+add_executable( state_observer utilities.hpp state_observer/state_observer.cpp state_observer/general_file_io.cpp state_observer/general_file_io.hpp state_observer/state_specific_file_io.cpp state_observer/state_specific_file_io.hpp state_observer/orbit_classes.cpp state_observer/orbit_classes.hpp state_observer/system_and_poincare_surface.cpp state_observer/system_and_poincare_surface.hpp state_observer/integration_utilities.cpp state_observer/integration_utilities.hpp state_observer/state_wrapper.cpp state_observer/state_wrapper.hpp state_observer/armadillo_state.hpp state_observer/armadillo_state.cpp state_observer/hdf5_io.cpp state_observer/hdf5_io.hpp)
 target_link_libraries(state_observer Boost::boost myUtilities::myUtilities stdc++fs armadillo)
 target_compile_options(state_observer PRIVATE
         -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic

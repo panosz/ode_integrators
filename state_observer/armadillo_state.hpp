@@ -10,7 +10,10 @@
 
 namespace DS
 {
-    using armadillo_state = arma::rowvec4;
+
+    const unsigned STATE_DIMENSIONS=4;
+
+    using armadillo_state = arma::drowvec::fixed<STATE_DIMENSIONS>;
 
 }
 
@@ -32,14 +35,21 @@ namespace boost
     }
 }
 
-std::ostream& operator<< (std::ostream& os, const std::vector<DS::armadillo_state>& states)
-{
-  {
 
-    for (const auto& s : states)
-      s.raw_print(os);
-    return os;
-  }
-}
+arma::mat matrix_from_collection_of_armadillo_states (const std::vector<DS::armadillo_state >& states);
+
+
+struct ArmaOrbitCrossOutput
+{
+    DS::armadillo_state initial_point{};
+    arma::mat cross_points{};
+
+    ArmaOrbitCrossOutput() = default;
+    explicit ArmaOrbitCrossOutput(const OrbitCrossOutput<DS::armadillo_state > & orbitCrossOutput);
+
+};
+
+
+std::ostream& operator<< (std::ostream& os, const std::vector<DS::armadillo_state>& states);
 
 #endif //ODE_INTEGRATORS_ARMADILLO_STATE_HPP

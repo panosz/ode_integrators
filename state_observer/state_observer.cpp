@@ -13,6 +13,7 @@
 #include "state_specific_file_io.hpp"
 #include "system_and_poincare_surface.hpp"
 #include "integration_utilities.hpp"
+#include "hdf5_io.hpp"
 
 
 
@@ -83,7 +84,6 @@ namespace DS
     };
 
 }
-//void write_to_files(const char* filename_)
 
 
 void print_usage_string ()
@@ -205,7 +205,7 @@ int main (int argc, char *argv[])
 
   auto poincare_points = trace_on_poincare_surface(my_system_and_pc, init_states, integration_time, options);
 
-  write_to_files("cross", poincare_points);
+  write_to_hdf5_files("cross", poincare_points);
 
   return 0;
 }

@@ -15,6 +15,8 @@ std::ifstream open_input_file(const char *input_filename);
 std::pair<std::ofstream,std::ofstream> prepare_text_files_for_output (const char *filename);
 
 
+std::pair<std::filesystem::path,std::filesystem::path> prepare_hdf5_files_for_output(const char * filename);
+
 
 
 #endif //ODE_INTEGRATORS_FILE_IO_HPP

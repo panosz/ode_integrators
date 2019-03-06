@@ -89,12 +89,14 @@ void remove_existing_hdf5_file(const std::filesystem::path& filepath)
     }
 }
 
-void prepare_hdf5_files_for_output(const char * filename)
+std::pair<std::filesystem::path,std::filesystem::path> prepare_hdf5_files_for_output(const char * filename)
 {
 
   namespace fs = std::filesystem;
-  auto[exact_path, approx_path] = make_text_file_paths(filename);
+  auto[exact_path, approx_path] = make_hdf5_file_paths(filename);
 
   remove_existing_hdf5_file(exact_path);
   remove_existing_hdf5_file(approx_path);
+
+  return std::make_pair(exact_path,approx_path);
 }
