@@ -206,6 +206,8 @@ int main (int argc, char *argv[])
   auto poincare_points = trace_on_poincare_surface(my_system_and_pc, init_states, integration_time, options);
 
   write_to_hdf5_files("cross", poincare_points);
+  write_to_text_files("cross", poincare_points);
+
 
   return 0;
 }

@@ -47,7 +47,6 @@ void write_to_text_files (const char *filename, const ApproximateAndExactCrossOu
   auto[exact_file, approx_file] = prepare_text_files_for_output(filename);
 
   exact_file << crossOutput.exact;
-  approx_file << crossOutput.approximate;
 
   exact_file.close();
   approx_file.close();
@@ -62,7 +61,6 @@ void write_to_text_files (const char *filename, const std::vector<ApproximateAnd
   for (const auto& out : crossOutputs)
     {
       exact_file << out.exact << '\n';
-      approx_file << out.approximate << '\n';
     }
 
   exact_file.close();

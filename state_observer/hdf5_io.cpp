@@ -26,7 +26,6 @@ void write_vector_of_datasets( std::pair<std::filesystem::path,std::filesystem::
       std::cout<<"writing "<<group<<'\n';
 
       write_as_group(exact_path,group, ArmaOrbitCrossOutput{crossOutputs[i].exact});
-      write_as_group(approx_path,group, ArmaOrbitCrossOutput{crossOutputs[i].approximate});
 
     }
 

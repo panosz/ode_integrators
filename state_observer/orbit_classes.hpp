@@ -44,7 +44,6 @@ std::ostream& operator<< (std::ostream& os, const OrbitCrossOutput<State>& orbit
 
 template<typename State>
 struct ApproximateAndExactCrossOutput {
-    OrbitCrossOutput<State> approximate;
     OrbitCrossOutput<State> exact;
 };
 

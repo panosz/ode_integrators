@@ -115,11 +115,11 @@ trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
 {
   ApproximateAndExactCrossOutput<typename System::StateType> output{};
 
-  output.approximate = pick_orbit_points_that_cross_surface(sys_and_pc,
+  const auto approximate_points = pick_orbit_points_that_cross_surface(sys_and_pc,
                                                             init_state, integration_time,
                                                             options);
 
-  output.exact = trace_cross_points_on_cross_surface(sys_and_pc, output.approximate);
+  output.exact = trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
 
   return output;
 }
