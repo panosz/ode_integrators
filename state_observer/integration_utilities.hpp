@@ -6,6 +6,7 @@
 #define ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
 
 #include <boost/numeric/odeint.hpp>
+#include <boost/math/constants/constants.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
@@ -58,6 +59,8 @@ pick_orbit_points_that_cross_surface (SystemAndPoincareSurface<System> sys,
                                       double integration_time,
                                       IntegrationOptions options)
 {
+  const double MAX_SURFACE_CROSS_DISTANCE = boost::math::double_constants::half_pi;
+
   OrbitCrossOutput<typename System::StateType> output{};
   output.initial_point = init_state;
 
@@ -79,10 +82,8 @@ pick_orbit_points_that_cross_surface (SystemAndPoincareSurface<System> sys,
   std::cout << "start following orbit" << std::endl;
 
 
-//  for (auto it=orbit_iterators.first; it!=orbit_iterators.second;++it);
-
   PanosUtilities::zero_cross_transformed(orbit_points, std::back_inserter(output.cross_points),
-                                         surface_fun, sys.poincare_surface().direction);
+                                         surface_fun, MAX_SURFACE_CROSS_DISTANCE, sys.poincare_surface().direction);
 
   std::cout << "calculated " << output.cross_points.size() << " cross points" << std::endl;
   return output;

@@ -5,6 +5,8 @@
 #ifndef ODE_INTEGRATORS_SYSTEM_AND_POINCARE_SURFACE_HPP
 #define ODE_INTEGRATORS_SYSTEM_AND_POINCARE_SURFACE_HPP
 
+#include "myUtilities/wrap.hpp"
+
 
 enum class VariableTag : unsigned {
   p = 0,
@@ -20,6 +22,19 @@ struct Surface {
     Surface (VariableTag vt, double pos, int direct)
         : variable_tag(vt), position(pos), direction(direct)
     { }
+
+    template <typename State>
+    double eval(const State& s) const noexcept
+    {
+      const auto index = static_cast<unsigned>(variable_tag);
+      const auto absolute_distance =  s[index] - position;
+
+      if (variable_tag == VariableTag::p || variable_tag==VariableTag::F)
+        return absolute_distance;
+
+      else return PanosUtilities::wrap_minus_pi_pi(absolute_distance);
+
+    }
 };
 
 template<typename System>
@@ -42,9 +57,7 @@ class SystemAndPoincareSurface {
 
   double surface_eval (const StateType& s) const
   {
-    const auto index = static_cast<unsigned>(surf_.variable_tag);
-
-    return s[index] - surf_.position;
+    return surf_.eval(s);
   }
 
   Surface poincare_surface () const
