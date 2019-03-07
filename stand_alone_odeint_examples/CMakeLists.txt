@@ -7,7 +7,7 @@ find_package(Armadillo REQUIRED)
 
 
 
-add_executable(harmonic_oscilator harmonic_oscilator.cpp utilities.hpp)
+add_executable(harmonic_oscilator EXCLUDE_FROM_ALL harmonic_oscilator.cpp utilities.hpp)
 target_link_libraries(harmonic_oscilator Boost::boost gnuplot_iostream::gnuplot_iostream)
 
 target_compile_options(harmonic_oscilator PRIVATE
@@ -25,7 +25,7 @@ target_compile_options(harmonic_oscilator PRIVATE
         )
 
 
-add_executable(karney_system karney_system.cpp utilities.hpp)
+add_executable(karney_system EXCLUDE_FROM_ALL karney_system.cpp utilities.hpp)
 target_link_libraries(karney_system Boost::boost gnuplot_iostream::gnuplot_iostream)
 
 target_compile_options(karney_system PRIVATE
@@ -45,7 +45,7 @@ target_compile_options(karney_system PRIVATE
 
 
 include_directories(${ARMADILLO_INCLUDE_DIRS})
-add_executable(henon_heiles henon_heilles/henon_heiles.cpp utilities.hpp
+add_executable(henon_heiles EXCLUDE_FROM_ALL henon_heilles/henon_heiles.cpp utilities.hpp
         henon_heilles/henon_heiles_impl.cpp henon_heilles/henon_heiles_impl.hpp henon_heilles/phase_space.hpp)
 target_link_libraries(henon_heiles Boost::boost gnuplot_iostream::gnuplot_iostream myUtilities::myUtilities ${ARMADILLO_LIBRARIES})
 

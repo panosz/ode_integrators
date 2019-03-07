@@ -1,0 +1,14 @@
+## - Config file for the poincare_map package #
+
+find_package(Boost REQUIRED)
+find_package(myUtilities REQUIRED)
+find_package(Armadillo REQUIRED)
+
+
+get_filename_component(poincare_map_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+if(NOT TARGET poincare_map::poincare_map)
+include("${poincare_map_CMAKE_DIR}/poincare_mapTargets.cmake")
+endif()
+
+set(poincare_map_LIBRARIES poincare_map::poincare_map)

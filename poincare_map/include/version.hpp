@@ -1,0 +1,3 @@
+#ifndef POINCARE_MAP_VERSION
+#define POINCARE_MAP_VERSION 0.1
+#endif
