@@ -10,10 +10,10 @@
 
 #include "orbit_classes.hpp"
 #include "armadillo_state.hpp"
-#include "state_specific_file_io.hpp"
+#include "input_output/state_specific_file_io.hpp"
 #include "system_and_poincare_surface.hpp"
 #include "integration_utilities.hpp"
-#include "hdf5_io.hpp"
+#include "input_output/hdf5_io.hpp"
 
 
 
