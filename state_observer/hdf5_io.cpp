@@ -14,7 +14,7 @@ void write_as_group(const std::string& filename, const std::string& group, const
 
 void write_vector_of_datasets( std::filesystem::path output_path,
                                const std::string& group_prefix,
-                               const std::vector<ApproximateAndExactCrossOutput<DS::armadillo_state>>& crossOutputs)
+                               const std::vector<OrbitCrossOutput<DS::armadillo_state>>& crossOutputs)
 {
 
 
@@ -24,7 +24,7 @@ void write_vector_of_datasets( std::filesystem::path output_path,
       std::string group= group_prefix + std::to_string(i);
       std::cout<<"writing "<<group<<'\n';
 
-      write_as_group(output_path,group, ArmaOrbitCrossOutput{crossOutputs[i].exact});
+      write_as_group(output_path,group, ArmaOrbitCrossOutput{crossOutputs[i]});
 
     }
 
@@ -34,7 +34,7 @@ void write_vector_of_datasets( std::filesystem::path output_path,
 
 
 void write_to_hdf5_files (const char *filename,
-                          const std::vector<ApproximateAndExactCrossOutput<DS::armadillo_state>>& crossOutputs)
+                          const std::vector<OrbitCrossOutput<DS::armadillo_state>>& crossOutputs)
 {
   auto paths = prepare_hdf5_files_for_output(filename);
 

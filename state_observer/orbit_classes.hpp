@@ -42,11 +42,6 @@ std::ostream& operator<< (std::ostream& os, const OrbitCrossOutput<State>& orbit
   return os;
 }
 
-template<typename State>
-struct ApproximateAndExactCrossOutput {
-    OrbitCrossOutput<State> exact;
-};
-
 
 
 #endif //ODE_INTEGRATORS_ORBIT_CLASSES_HPP

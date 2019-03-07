@@ -107,31 +107,30 @@ trace_cross_points_on_cross_surface (SystemAndPoincareSurface<System> sys,
 }
 
 template<typename System>
-ApproximateAndExactCrossOutput<typename System::StateType>
+OrbitCrossOutput<typename System::StateType>
 trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
                            typename System::StateType init_state,
                            double integration_time,
                            IntegrationOptions options)
 {
-  ApproximateAndExactCrossOutput<typename System::StateType> output{};
+  OrbitCrossOutput<typename System::StateType> output{};
 
   const auto approximate_points = pick_orbit_points_that_cross_surface(sys_and_pc,
                                                             init_state, integration_time,
                                                             options);
 
-  output.exact = trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
+  return trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
 
-  return output;
 }
 
 template<typename System>
-std::vector<ApproximateAndExactCrossOutput<typename System::StateType>>
+std::vector<OrbitCrossOutput<typename System::StateType>>
 trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
                            std::vector<typename System::StateType> init_states,
                            double integration_time,
                            IntegrationOptions options)
 {
-  std::vector<ApproximateAndExactCrossOutput<typename System::StateType>> output;
+  std::vector<OrbitCrossOutput<typename System::StateType>> output;
 
   for (const auto& state: init_states)
     output.push_back(trace_on_poincare_surface(sys_and_pc, state, integration_time, options));
