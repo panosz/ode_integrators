@@ -12,12 +12,11 @@ void write_as_group(const std::string& filename, const std::string& group, const
   armaOrbitCrossOutput.cross_points.save(hdf5_name(filename, group+"/cross_points",hdf5_opts::append + hdf5_opts::trans));
 }
 
-void write_vector_of_datasets( std::pair<std::filesystem::path,std::filesystem::path> paths,
+void write_vector_of_datasets( std::filesystem::path output_path,
                                const std::string& group_prefix,
                                const std::vector<ApproximateAndExactCrossOutput<DS::armadillo_state>>& crossOutputs)
 {
 
-  auto &[exact_path, approx_path] = paths;
 
   for (long unsigned int i = 0; i < crossOutputs.size(); ++i)
     {
@@ -25,7 +24,7 @@ void write_vector_of_datasets( std::pair<std::filesystem::path,std::filesystem::
       std::string group= group_prefix + std::to_string(i);
       std::cout<<"writing "<<group<<'\n';
 
-      write_as_group(exact_path,group, ArmaOrbitCrossOutput{crossOutputs[i].exact});
+      write_as_group(output_path,group, ArmaOrbitCrossOutput{crossOutputs[i].exact});
 
     }
 

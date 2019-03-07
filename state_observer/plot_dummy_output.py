@@ -9,7 +9,7 @@ def wrap2pi(x):
     return x - 2 * np.pi * np.floor_divide(x, 2 * np.pi)
 
 
-a = sp.loadtxt('cross_exact.txt')
+a = sp.loadtxt('cross.txt')
 
 fig, ax = plt.subplots(1, 1)
 

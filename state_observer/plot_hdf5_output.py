@@ -9,7 +9,7 @@ def wrap2pi(x):
     return x - 2 * np.pi * np.floor_divide(x, 2 * np.pi)
 
 
-hf = h5py.File('cross_exact.hdf5')
+hf = h5py.File('cross.hdf5')
 
 fig, ax = plt.subplots(1, 1)
 
