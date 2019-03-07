@@ -88,7 +88,7 @@ namespace DS
 
 void print_usage_string ()
 {
-  const auto usage_string = "usage: state_observer input_filename integration_time perturpbation_amplitude q_harmonic chi_harmonic";
+  const auto usage_string = "usage: poincare_map input_filename integration_time perturpbation_amplitude q_harmonic chi_harmonic";
   std::cout << usage_string << std::endl;
 }
 

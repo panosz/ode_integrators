@@ -7,67 +7,16 @@ find_package(Boost REQUIRED)
 
 find_package(gnuplot_iostream REQUIRED)
 
-
-add_executable(harmonic_oscilator harmonic_oscilator.cpp utilities.hpp)
-target_link_libraries(harmonic_oscilator Boost::boost gnuplot_iostream::gnuplot_iostream)
-
-target_compile_options(harmonic_oscilator PRIVATE
-        -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
-        -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
-        -Wconversion -Wsign-conversion -Wmisleading-indentation
-        -Wduplicated-cond -Wduplicated-branches -Wlogical-op
-        -Wnull-dereference -Wuseless-cast -Wdouble-promotion
-        -Wformat=2
-
-        $<$<CONFIG:Release>:
-        -O2
-        -march=native
-        >
-        )
-
-
-add_executable(karney_system karney_system.cpp utilities.hpp)
-target_link_libraries(karney_system Boost::boost gnuplot_iostream::gnuplot_iostream)
-
-target_compile_options(karney_system PRIVATE
-        -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
-        -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
-        -Wconversion -Wsign-conversion -Wmisleading-indentation
-        -Wduplicated-cond -Wduplicated-branches -Wlogical-op
-        -Wnull-dereference -Wuseless-cast -Wdouble-promotion
-        -Wformat=2
-
-        $<$<CONFIG:Release>:
-        -O2
-        -march=native
-        >
-        )
-
-
 find_package(myUtilities REQUIRED)
 find_package(Armadillo REQUIRED)
-include_directories(${ARMADILLO_INCLUDE_DIRS})
-add_executable(henon_heiles henon_heilles/henon_heiles.cpp utilities.hpp
-        henon_heilles/henon_heiles_impl.cpp henon_heilles/henon_heiles_impl.hpp henon_heilles/phase_space.hpp)
-target_link_libraries(henon_heiles Boost::boost gnuplot_iostream::gnuplot_iostream myUtilities::myUtilities ${ARMADILLO_LIBRARIES})
 
-target_compile_options(henon_heiles PRIVATE
-        -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
-        -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
-        -Wconversion -Wsign-conversion -Wmisleading-indentation
-        -Wduplicated-cond -Wduplicated-branches -Wlogical-op
-        -Wnull-dereference -Wuseless-cast -Wdouble-promotion
-        -Wformat=2
 
-        $<$<CONFIG:Release>:
-        -O3
-        -march=native
-        >
-        )
+add_subdirectory(stand_alone_odeint_examples)
 
-add_executable( state_observer utilities.hpp state_observer/state_observer.cpp state_observer/input_output/general_file_io.cpp state_observer/input_output/general_file_io.hpp state_observer/input_output/state_specific_file_io.cpp state_observer/input_output/state_specific_file_io.hpp state_observer/orbit_classes.cpp state_observer/orbit_classes.hpp state_observer/system_and_poincare_surface.cpp state_observer/system_and_poincare_surface.hpp state_observer/integration_utilities.cpp state_observer/integration_utilities.hpp state_observer/state_wrapper.cpp state_observer/state_wrapper.hpp state_observer/armadillo_state.hpp state_observer/armadillo_state.cpp state_observer/input_output/hdf5_io.cpp state_observer/input_output/hdf5_io.hpp)
-target_link_libraries(state_observer Boost::boost myUtilities::myUtilities stdc++fs armadillo)
-target_compile_options(state_observer PRIVATE
+
+add_executable(poincare_map poincare_map/state_observer.cpp poincare_map/input_output/general_file_io.cpp poincare_map/input_output/general_file_io.hpp poincare_map/input_output/state_specific_file_io.cpp poincare_map/input_output/state_specific_file_io.hpp poincare_map/orbit_classes.cpp poincare_map/orbit_classes.hpp poincare_map/system_and_poincare_surface.cpp poincare_map/system_and_poincare_surface.hpp poincare_map/integration_utilities.cpp poincare_map/integration_utilities.hpp poincare_map/state_wrapper.cpp poincare_map/state_wrapper.hpp poincare_map/armadillo_state.hpp poincare_map/armadillo_state.cpp poincare_map/input_output/hdf5_io.cpp poincare_map/input_output/hdf5_io.hpp)
+target_link_libraries(poincare_map Boost::boost myUtilities::myUtilities stdc++fs armadillo)
+target_compile_options(poincare_map PRIVATE
         -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
         -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
         -Wconversion -Wsign-conversion -Wmisleading-indentation
