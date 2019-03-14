@@ -5,6 +5,8 @@
 #ifndef ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
 #define ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
 
+#include <memory>
+#include <utility>
 #include <boost/numeric/odeint.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -58,16 +60,16 @@ class ParticleOrbit
  public:
   using StateType =State;
  private:
-  StateType init_state_;
+  std::unique_ptr<StateType> init_state_ptr_;
   Range range_;
   bool is_consumed_;
  public:
-  ParticleOrbit (StateType init_state, Range range)
-      : init_state_(init_state), range_(range), is_consumed_{false}
+  ParticleOrbit (std::unique_ptr<StateType>&& init_state_ptr, Range range)
+      : init_state_ptr_{std::move(init_state_ptr)}, range_{range}, is_consumed_{false}
   {};
   StateType init_state () const noexcept
   {
-    return init_state_;
+    return *init_state_ptr_;
   }
   bool is_consumed () const noexcept
   {
@@ -84,6 +86,8 @@ class ParticleOrbit
     return range_;
   }
 };
+
+
 
 template<typename System>
 auto make_ParticleOrbit(System sys,
@@ -102,15 +106,15 @@ auto make_ParticleOrbit(System sys,
 
   const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType<System>());
 
-
+  auto init_state_holder = std::make_unique<typename System::StateType>(init_state);
 
   auto orbit_iterators = make_adaptive_range(controlled_stepper,
                                              sys,
-                                             init_state, integration_start_time, integration_time, options.dt);
+                                             *init_state_holder, integration_start_time, integration_time, options.dt);
 
   auto orbit_range =  boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
 
-  return ParticleOrbit(init_state,orbit_range);
+  return ParticleOrbit(std::move(init_state_holder),orbit_range);
 }
 
 
@@ -127,14 +131,15 @@ auto make_TimeParticleOrbit(System sys,
   const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType<System>());
 
 
+  auto init_state_holder = std::make_unique<typename System::StateType>(init_state);
 
-  auto orbit_iterators = make_adaptive_time_range(controlled_stepper,
+  auto orbit_iterators = make_adaptive_range(controlled_stepper,
                                              sys,
-                                             init_state, integration_start_time, integration_time, options.dt);
+                                             *init_state_holder, integration_start_time, integration_time, options.dt);
 
   auto orbit_range =  boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
 
-  return ParticleOrbit(init_state,orbit_range);
+  return ParticleOrbit(std::move(init_state_holder),orbit_range);
 }
 
 
@@ -143,7 +148,7 @@ auto make_TimeParticleOrbit(System sys,
 
 template<typename OrbitType>
 OrbitCrossOutput<typename OrbitType::StateType>
-pick_orbit_points_that_cross_surface (OrbitType orbit, Surface surface )
+pick_orbit_points_that_cross_surface (OrbitType& orbit, Surface surface )
 {
   const double MAX_SURFACE_CROSS_DISTANCE = boost::math::double_constants::half_pi;
 
