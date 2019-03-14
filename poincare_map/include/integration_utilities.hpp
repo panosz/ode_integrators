@@ -131,7 +131,7 @@ class ParticleOrbit {
     return make_OrbitRange(sys_, state_, integration_time_, options_);
   }
 
-  auto times_range ()
+  auto time_range ()
   /// should not follow more than two instances of the same orbit range simultaneously
   {
     state_ = init_state_;
