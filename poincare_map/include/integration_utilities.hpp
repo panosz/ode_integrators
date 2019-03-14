@@ -5,8 +5,6 @@
 #ifndef ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
 #define ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
 
-#include <memory>
-#include <utility>
 #include <boost/numeric/odeint.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -54,44 +52,9 @@ struct IntegrationOptions {
     { }
 };
 
-template<typename Range, typename State>
-class ParticleOrbit
-{
- public:
-  using StateType =State;
- private:
-  std::unique_ptr<StateType> init_state_ptr_;
-  Range range_;
-  bool is_consumed_;
- public:
-  ParticleOrbit (std::unique_ptr<StateType>&& init_state_ptr, Range range)
-      : init_state_ptr_{std::move(init_state_ptr)}, range_{range}, is_consumed_{false}
-  {};
-  StateType init_state () const noexcept
-  {
-    return *init_state_ptr_;
-  }
-  bool is_consumed () const noexcept
-  {
-    return is_consumed_;
-  }
-
-  Range range ()
-  /// can be consumed only once
-  {
-    if (is_consumed_)
-      throw std::runtime_error("Orbit may be already consumed");
-
-    is_consumed_=true;
-    return range_;
-  }
-};
-
-
-
 template<typename System>
-auto make_ParticleOrbit(System sys,
-                      typename System::StateType init_state,
+auto make_OrbitRange (System sys,
+                      typename System::StateType& init_state,
                       double integration_time,
                       IntegrationOptions options)
 /// \brief returnded orbit has range of type addaptive_range
@@ -106,23 +69,18 @@ auto make_ParticleOrbit(System sys,
 
   const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType<System>());
 
-  auto init_state_holder = std::make_unique<typename System::StateType>(init_state);
-
   auto orbit_iterators = make_adaptive_range(controlled_stepper,
                                              sys,
-                                             *init_state_holder, integration_start_time, integration_time, options.dt);
+                                             init_state, integration_start_time, integration_time, options.dt);
 
-  auto orbit_range =  boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
-
-  return ParticleOrbit(std::move(init_state_holder),orbit_range);
+  return boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
 }
 
-
 template<typename System>
-auto make_TimeParticleOrbit(System sys,
-                        typename System::StateType init_state,
-                        double integration_time,
-                        IntegrationOptions options)
+auto make_OrbitTimeRange (System sys,
+                          typename System::StateType& init_state,
+                          double integration_time,
+                          IntegrationOptions options)
 ///returned orbit has range of type addaptive_time_range
 
 {
@@ -130,38 +88,78 @@ auto make_TimeParticleOrbit(System sys,
 
   const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType<System>());
 
+  auto orbit_iterators = make_adaptive_time_range(controlled_stepper,
+                                                  sys,
+                                                  init_state, integration_start_time, integration_time, options.dt);
 
-  auto init_state_holder = std::make_unique<typename System::StateType>(init_state);
-
-  auto orbit_iterators = make_adaptive_range(controlled_stepper,
-                                             sys,
-                                             *init_state_holder, integration_start_time, integration_time, options.dt);
-
-  auto orbit_range =  boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
-
-  return ParticleOrbit(std::move(init_state_holder),orbit_range);
+  return boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
 }
 
+template<typename System>
+class ParticleOrbit {
+ public:
+  using StateType = typename System::StateType;
+ private:
+  System sys_;
+  StateType init_state_;
+  double integration_time_;
+  IntegrationOptions options_;
+  mutable StateType state_;
+ public:
 
+  ParticleOrbit (System sys, StateType init_state, double integration_time,
+                 IntegrationOptions options)
+      : sys_{sys}, init_state_{init_state},
+        integration_time_{integration_time},
+        options_{options},
+        state_(init_state)
+  { }
 
+  StateType init_state () const
+  {
+    return init_state_;
+  }
+  System sys () const
+  {
+    return sys_;
+  }
 
+  auto range ()
+  /// should not follow more than two instances of the same orbit range simultaneously
+  {
+    state_ = init_state_;
+    return make_OrbitRange(sys_, state_, integration_time_, options_);
+  }
+
+  auto times_range ()
+  /// should not follow more than two instances of the same orbit range simultaneously
+  {
+    state_ = init_state_;
+    return make_OrbitTimeRange(sys_, state_, integration_time_, options_);
+  }
+
+};
+
+template<typename System>
+auto make_ParticleOrbit (System sys, typename System::StateType init_state, double integration_time,
+                         IntegrationOptions options)
+{
+  return ParticleOrbit<System>(sys, init_state, integration_time, options);
+};
 
 template<typename OrbitType>
 OrbitCrossOutput<typename OrbitType::StateType>
-pick_orbit_points_that_cross_surface (OrbitType& orbit, Surface surface )
+pick_orbit_points_that_cross_surface (OrbitType& orbit, Surface surface)
 {
   const double MAX_SURFACE_CROSS_DISTANCE = boost::math::double_constants::half_pi;
 
   OrbitCrossOutput<typename OrbitType::StateType> output{};
   output.initial_point = orbit.init_state();
 
-
-
-  auto surface_fun = [surf=surface] (const typename OrbitType::StateType& s)
+  auto surface_fun = [surf = surface] (const typename OrbitType::StateType& s)
   { return surf.eval(s); };
 
   std::cout << "start following orbit" << std::endl;
-
 
   PanosUtilities::zero_cross_transformed(orbit.range(), std::back_inserter(output.cross_points),
                                          surface_fun, MAX_SURFACE_CROSS_DISTANCE, surface.direction);
@@ -196,9 +194,10 @@ trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
 {
   OrbitCrossOutput<typename System::StateType> output{};
 
-  auto orbit = make_ParticleOrbit(sys_and_pc,init_state,integration_time,options);
+  auto orbit = make_ParticleOrbit(sys_and_pc, init_state, integration_time, options);
 
-  const auto approximate_points = pick_orbit_points_that_cross_surface(orbit,sys_and_pc.poincare_surface());
+  const auto approximate_points = pick_orbit_points_that_cross_surface(orbit,
+                                                                       sys_and_pc.poincare_surface());
 
   return trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
 
