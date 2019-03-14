@@ -90,6 +90,13 @@ auto make_ParticleOrbit(SystemAndPoincareSurface<System> sys,
                       typename System::StateType init_state,
                       double integration_time,
                       IntegrationOptions options)
+/// \brief returnded orbit has range of type addaptive_range
+/// \tparam System
+/// \param sys
+/// \param init_state
+/// \param integration_time
+/// \param options
+/// \return
 {
   const double integration_start_time = 0;
 
@@ -105,6 +112,34 @@ auto make_ParticleOrbit(SystemAndPoincareSurface<System> sys,
 
   return ParticleOrbit(init_state,orbit_range);
 }
+
+
+template<typename System>
+auto make_TimeParticleOrbit(SystemAndPoincareSurface<System> sys,
+                        typename System::StateType init_state,
+                        double integration_time,
+                        IntegrationOptions options)
+///returned orbit has range of type addaptive_time_range
+
+{
+  const double integration_start_time = 0;
+
+  const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType<System>());
+
+
+
+  auto orbit_iterators = make_adaptive_time_range(controlled_stepper,
+                                             sys,
+                                             init_state, integration_start_time, integration_time, options.dt);
+
+  auto orbit_range =  boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
+
+  return ParticleOrbit(init_state,orbit_range);
+}
+
+
+
+
 
 template<typename OrbitType>
 OrbitCrossOutput<typename OrbitType::StateType>
