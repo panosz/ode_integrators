@@ -52,18 +52,45 @@ struct IntegrationOptions {
     { }
 };
 
-template<typename System>
-OrbitCrossOutput<typename System::StateType>
-pick_orbit_points_that_cross_surface (SystemAndPoincareSurface<System> sys,
-                                      typename System::StateType init_state,
-                                      double integration_time,
-                                      IntegrationOptions options)
+template<typename Range, typename State>
+class ParticleOrbit
 {
-  const double MAX_SURFACE_CROSS_DISTANCE = boost::math::double_constants::half_pi;
+ public:
+  using StateType =State;
+ private:
+  StateType init_state_;
+  Range range_;
+  bool is_consumed_;
+ public:
+  ParticleOrbit (StateType init_state, Range range)
+      : init_state_(init_state), range_(range), is_consumed_{false}
+  {};
+  StateType init_state () const noexcept
+  {
+    return init_state_;
+  }
+  bool is_consumed () const noexcept
+  {
+    return is_consumed_;
+  }
 
-  OrbitCrossOutput<typename System::StateType> output{};
-  output.initial_point = init_state;
+  Range range ()
+  /// can be consumed only once
+  {
+    if (is_consumed_)
+      throw std::runtime_error("Orbit may be already consumed");
 
+    is_consumed_=true;
+    return range_;
+  }
+};
+
+template<typename System>
+auto make_ParticleOrbit(SystemAndPoincareSurface<System> sys,
+                      typename System::StateType init_state,
+                      double integration_time,
+                      IntegrationOptions options)
+{
   const double integration_start_time = 0;
 
   const auto controlled_stepper = make_controlled(options.abs_err, options.rel_err, ErrorStepperType<System>());
@@ -74,16 +101,30 @@ pick_orbit_points_that_cross_surface (SystemAndPoincareSurface<System> sys,
                                              sys,
                                              init_state, integration_start_time, integration_time, options.dt);
 
-  auto orbit_points = boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
+  auto orbit_range =  boost::make_iterator_range(orbit_iterators.first, orbit_iterators.second);
 
-  auto surface_fun = [sys] (const typename System::StateType& s)
-  { return sys.surface_eval(s); };
+  return ParticleOrbit(init_state,orbit_range);
+}
+
+template<typename OrbitType>
+OrbitCrossOutput<typename OrbitType::StateType>
+pick_orbit_points_that_cross_surface (OrbitType orbit, Surface surface )
+{
+  const double MAX_SURFACE_CROSS_DISTANCE = boost::math::double_constants::half_pi;
+
+  OrbitCrossOutput<typename OrbitType::StateType> output{};
+  output.initial_point = orbit.init_state();
+
+
+
+  auto surface_fun = [surf=surface] (const typename OrbitType::StateType& s)
+  { return surf.eval(s); };
 
   std::cout << "start following orbit" << std::endl;
 
 
-  PanosUtilities::zero_cross_transformed(orbit_points, std::back_inserter(output.cross_points),
-                                         surface_fun, MAX_SURFACE_CROSS_DISTANCE, sys.poincare_surface().direction);
+  PanosUtilities::zero_cross_transformed(orbit.range(), std::back_inserter(output.cross_points),
+                                         surface_fun, MAX_SURFACE_CROSS_DISTANCE, surface.direction);
 
   std::cout << "calculated " << output.cross_points.size() << " cross points" << std::endl;
   return output;
@@ -115,9 +156,9 @@ trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
 {
   OrbitCrossOutput<typename System::StateType> output{};
 
-  const auto approximate_points = pick_orbit_points_that_cross_surface(sys_and_pc,
-                                                            init_state, integration_time,
-                                                            options);
+  auto orbit = make_ParticleOrbit(sys_and_pc,init_state,integration_time,options);
+
+  const auto approximate_points = pick_orbit_points_that_cross_surface(orbit,sys_and_pc.poincare_surface());
 
   return trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
 
