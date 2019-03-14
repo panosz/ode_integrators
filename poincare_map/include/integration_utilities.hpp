@@ -86,7 +86,7 @@ class ParticleOrbit
 };
 
 template<typename System>
-auto make_ParticleOrbit(SystemAndPoincareSurface<System> sys,
+auto make_ParticleOrbit(System sys,
                       typename System::StateType init_state,
                       double integration_time,
                       IntegrationOptions options)
@@ -115,7 +115,7 @@ auto make_ParticleOrbit(SystemAndPoincareSurface<System> sys,
 
 
 template<typename System>
-auto make_TimeParticleOrbit(SystemAndPoincareSurface<System> sys,
+auto make_TimeParticleOrbit(System sys,
                         typename System::StateType init_state,
                         double integration_time,
                         IntegrationOptions options)
