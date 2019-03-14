@@ -14,7 +14,7 @@
 #include <myUtilities/wrap.hpp>
 
 #include "system_and_poincare_surface.hpp"
-#include "orbit_classes.hpp"
+#include "samplingCollections.hpp"
 
 using namespace boost::numeric::odeint;
 

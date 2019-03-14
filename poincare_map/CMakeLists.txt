@@ -12,7 +12,7 @@ configure_file (
 
 add_library(poincare_map SHARED include/version.hpp src/input_output/general_file_io.cpp
         include/input_output/general_file_io.hpp src/input_output/state_specific_file_io.cpp
-        include/input_output/state_specific_file_io.hpp src/orbit_classes.cpp include/orbit_classes.hpp
+        include/input_output/state_specific_file_io.hpp src/samplingCollections.cpp include/samplingCollections.hpp
         src/system_and_poincare_surface.cpp include/system_and_poincare_surface.hpp
         src/integration_utilities.cpp include/integration_utilities.hpp src/state_wrapper.cpp include/state_wrapper.hpp
         include/armadillo_state.hpp src/armadillo_state.cpp src/input_output/hdf5_io.cpp include/input_output/hdf5_io.hpp)

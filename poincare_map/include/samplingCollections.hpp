@@ -2,8 +2,8 @@
 // Created by Panagiotis Zestanakis on 26/02/19.
 //
 
-#ifndef ODE_INTEGRATORS_ORBIT_CLASSES_HPP
-#define ODE_INTEGRATORS_ORBIT_CLASSES_HPP
+#ifndef ODE_INTEGRATORS_SAMPLING_COLLECTIONS_HPP
+#define ODE_INTEGRATORS_SAMPLING_COLLECTIONS_HPP
 
 #include <array>
 #include <iostream>
@@ -44,4 +44,4 @@ std::ostream& operator<< (std::ostream& os, const OrbitCrossOutput<State>& orbit
 
 
 
-#endif //ODE_INTEGRATORS_ORBIT_CLASSES_HPP
+#endif //ODE_INTEGRATORS_SAMPLING_COLLECTIONS_HPP

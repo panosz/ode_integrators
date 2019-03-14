@@ -6,7 +6,7 @@
 #define ODE_INTEGRATORS_ARMADILLO_STATE_HPP
 #include <armadillo>
 #include <boost/numeric/odeint/algebra/vector_space_algebra.hpp>
-#include "orbit_classes.hpp"
+#include "samplingCollections.hpp"
 
 namespace DS
 {
