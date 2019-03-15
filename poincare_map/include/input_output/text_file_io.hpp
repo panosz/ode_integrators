@@ -40,30 +40,8 @@ std::vector<State> get_state_from_file (const char *input_filename, unsigned num
 
 
 
-template <typename State>
-void write_to_text_files (const char *filename, const OrbitCrossOutput<State>& crossOutput)
-{
+void write_to_text_files (const char *filename, const OrbitCrossOutput& crossOutput);
 
-  auto outputfile = prepare_text_files_for_output(filename);
-
-  outputfile << crossOutput;
-
-  outputfile.close();
-
-}
-
-template <typename State>
-void write_to_text_files (const char *filename, const std::vector<OrbitCrossOutput<State>>& crossOutputs)
-{
-  auto exact_file = prepare_text_files_for_output(filename);
-
-  for (const auto& out : crossOutputs)
-    {
-      exact_file << out << '\n';
-    }
-
-  exact_file.close();
-
-}
+void write_to_text_files (const char *filename, const std::vector<OrbitCrossOutput>& crossOutputs);
 
 #endif //ODE_INTEGRATORS_STATE_SPECIFIC_FILE_IO_HPP

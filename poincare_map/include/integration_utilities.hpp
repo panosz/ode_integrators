@@ -184,33 +184,30 @@ accurate_from_rough_cross_points (SystemAndPoincareSurface<System> sys,
 }
 
 template<typename System>
-OrbitCrossOutput<typename System::StateType>
+OrbitCrossOutput
 trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
                            typename System::StateType init_state,
                            double integration_time,
                            IntegrationOptions options)
 {
-  OrbitCrossOutput<typename System::StateType> output{};
-  output.initial_point = init_state;
-
   auto orbit = make_ParticleOrbit(sys_and_pc, init_state, integration_time, options);
 
   const auto approximate_points = rough_cross_points(orbit,
                                                      sys_and_pc.poincare_surface());
 
-  output.cross_points = accurate_from_rough_cross_points(sys_and_pc, approximate_points);
+  auto cross_points = accurate_from_rough_cross_points(sys_and_pc, approximate_points);
 
-  return output;
+  return make_OrbitCrossOutput(init_state,cross_points);
 }
 
 template<typename System>
-std::vector<OrbitCrossOutput<typename System::StateType>>
+std::vector<OrbitCrossOutput>
 trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
                            std::vector<typename System::StateType> init_states,
                            double integration_time,
                            IntegrationOptions options)
 {
-  std::vector<OrbitCrossOutput<typename System::StateType>> output;
+  std::vector<OrbitCrossOutput> output;
 
   for (const auto& state: init_states)
     output.push_back(trace_on_poincare_surface(sys_and_pc, state, integration_time, options));
