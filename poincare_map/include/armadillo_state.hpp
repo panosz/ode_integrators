@@ -13,7 +13,8 @@ namespace DS
 
     const unsigned STATE_DIMENSIONS=4;
 
-    using armadillo_state = arma::drowvec::fixed<STATE_DIMENSIONS>;
+    using armadillo_base_state = arma::drowvec;
+    using armadillo_state = armadillo_base_state::fixed<STATE_DIMENSIONS>;
 
 }
 
@@ -23,10 +24,10 @@ namespace boost
     {
         namespace odeint
         {
-            template<>
-            struct vector_space_norm_inf<DS::armadillo_state> {
+            template<arma::uword N>
+            struct vector_space_norm_inf<arma::drowvec::fixed<N>> {
                 typedef double result_type;
-                double operator() (const DS::armadillo_state& p) const
+                double operator() (const arma::drowvec::fixed<N>& p) const
                 {
                   return arma::norm(p, "inf");
                 }
@@ -36,20 +37,5 @@ namespace boost
 }
 
 
-arma::mat matrix_from_collection_of_armadillo_states (const std::vector<DS::armadillo_state >& states);
-
-
-struct ArmaOrbitCrossOutput
-{
-    DS::armadillo_state initial_point{};
-    arma::mat cross_points{};
-
-    ArmaOrbitCrossOutput() = default;
-    explicit ArmaOrbitCrossOutput(const OrbitCrossOutput<DS::armadillo_state > & orbitCrossOutput);
-
-};
-
-
-std::ostream& operator<< (std::ostream& os, const std::vector<DS::armadillo_state>& states);
 
 #endif //ODE_INTEGRATORS_ARMADILLO_STATE_HPP
