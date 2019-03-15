@@ -149,7 +149,7 @@ auto make_ParticleOrbit (System sys, typename System::StateType init_state, doub
 
 template<typename OrbitType>
 std::vector<typename OrbitType::StateType>
-pick_orbit_points_that_cross_surface (OrbitType& orbit, Surface surface)
+rough_cross_points (OrbitType& orbit, Surface surface)
 {
   const double MAX_SURFACE_CROSS_DISTANCE = boost::math::double_constants::half_pi;
 
@@ -169,18 +169,18 @@ pick_orbit_points_that_cross_surface (OrbitType& orbit, Surface surface)
 
 template<typename System>
 std::vector<typename System::StateType>
-trace_cross_points_on_cross_surface (SystemAndPoincareSurface<System> sys,
-                                     const std::vector<typename System::StateType>& approximate_cross_output)
+accurate_from_rough_cross_points (SystemAndPoincareSurface<System> sys,
+                                  const std::vector<typename System::StateType>& rough_cross_input)
 {
-  std::vector<typename System::StateType> output{};
+  std::vector<typename System::StateType> fine_cross_output{};
 
   const auto my_projection = [sys] (typename System::StateType s)
   { return step_on_surface(sys, s, ErrorStepperType<System>()); };
 
-  boost::push_back(output,
-                   approximate_cross_output | boost::adaptors::transformed(my_projection));
+  boost::push_back(fine_cross_output,
+                   rough_cross_input | boost::adaptors::transformed(my_projection));
 
-  return output;
+  return fine_cross_output;
 }
 
 template<typename System>
@@ -195,10 +195,10 @@ trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
 
   auto orbit = make_ParticleOrbit(sys_and_pc, init_state, integration_time, options);
 
-  const auto approximate_points = pick_orbit_points_that_cross_surface(orbit,
-                                                                       sys_and_pc.poincare_surface());
+  const auto approximate_points = rough_cross_points(orbit,
+                                                     sys_and_pc.poincare_surface());
 
-  output.cross_points =  trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
+  output.cross_points = accurate_from_rough_cross_points(sys_and_pc, approximate_points);
 
   return output;
 }
