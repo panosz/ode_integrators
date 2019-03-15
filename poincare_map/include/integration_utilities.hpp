@@ -145,7 +145,7 @@ auto make_ParticleOrbit (System sys, typename System::StateType init_state, doub
                          IntegrationOptions options)
 {
   return ParticleOrbit<System>(sys, init_state, integration_time, options);
-};
+}
 
 template<typename OrbitType>
 OrbitCrossOutput<typename OrbitType::StateType>
