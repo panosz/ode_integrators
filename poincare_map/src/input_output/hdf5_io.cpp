@@ -6,16 +6,6 @@
 
 
 
-std::ostream& operator<< (std::ostream& os, const std::vector<DS::armadillo_state>& states)
-{
-  {
-
-    for (const auto& s : states)
-      s.raw_print(os);
-    return os;
-  }
-}
-
 
 void write_as_group(const std::string& filename, const std::string& group, const OrbitCrossOutput& armaOrbitCrossOutput )
 {

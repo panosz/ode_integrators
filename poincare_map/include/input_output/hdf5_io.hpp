@@ -10,7 +10,6 @@
 
 
 
-std::ostream& operator<< (std::ostream& os, const std::vector<DS::armadillo_state>& states);
 
 
 void write_to_hdf5_files (const char *filename,

@@ -11,11 +11,22 @@
 namespace DS
 {
 
-    const unsigned STATE_DIMENSIONS=4;
-
     using armadillo_base_state = arma::drowvec;
-    using armadillo_state = armadillo_base_state::fixed<STATE_DIMENSIONS>;
 
+    template<arma::uword N>
+    using armadillo_state = armadillo_base_state::fixed<N>;
+    
+}
+
+template<arma::uword N>
+std::ostream& operator<< (std::ostream& os, const std::vector<DS::armadillo_state<N>>& states)
+{
+  {
+
+    for (const auto& s : states)
+      s.raw_print(os);
+    return os;
+  }
 }
 
 namespace boost
@@ -35,7 +46,5 @@ namespace boost
         }
     }
 }
-
-
 
 #endif //ODE_INTEGRATORS_ARMADILLO_STATE_HPP

@@ -21,7 +21,7 @@
 namespace DS
 {
 
-    using myState = armadillo_state;
+    using myState = armadillo_state<4>;
 
     myState unperturbedExtendedHOderivatives (const myState& s)
     {
