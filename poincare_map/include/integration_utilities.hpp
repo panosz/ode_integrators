@@ -148,39 +148,37 @@ auto make_ParticleOrbit (System sys, typename System::StateType init_state, doub
 }
 
 template<typename OrbitType>
-OrbitCrossOutput<typename OrbitType::StateType>
+std::vector<typename OrbitType::StateType>
 pick_orbit_points_that_cross_surface (OrbitType& orbit, Surface surface)
 {
   const double MAX_SURFACE_CROSS_DISTANCE = boost::math::double_constants::half_pi;
 
-  OrbitCrossOutput<typename OrbitType::StateType> output{};
-  output.initial_point = orbit.init_state();
+  std::vector<typename OrbitType::StateType> output{};
 
   auto surface_fun = [surf = surface] (const typename OrbitType::StateType& s)
   { return surf.eval(s); };
 
   std::cout << "start following orbit" << std::endl;
 
-  PanosUtilities::zero_cross_transformed(orbit.range(), std::back_inserter(output.cross_points),
+  PanosUtilities::zero_cross_transformed(orbit.range(), std::back_inserter(output),
                                          surface_fun, MAX_SURFACE_CROSS_DISTANCE, surface.direction);
 
-  std::cout << "calculated " << output.cross_points.size() << " cross points" << std::endl;
+  std::cout << "calculated " << output.size() << " cross points" << std::endl;
   return output;
 }
 
 template<typename System>
-OrbitCrossOutput<typename System::StateType>
+std::vector<typename System::StateType>
 trace_cross_points_on_cross_surface (SystemAndPoincareSurface<System> sys,
-                                     const OrbitCrossOutput<typename System::StateType>& approximate_cross_output)
+                                     const std::vector<typename System::StateType>& approximate_cross_output)
 {
-  OrbitCrossOutput<typename System::StateType> output{};
-  output.initial_point = approximate_cross_output.initial_point;
+  std::vector<typename System::StateType> output{};
 
   const auto my_projection = [sys] (typename System::StateType s)
   { return step_on_surface(sys, s, ErrorStepperType<System>()); };
 
-  boost::push_back(output.cross_points,
-                   approximate_cross_output.cross_points | boost::adaptors::transformed(my_projection));
+  boost::push_back(output,
+                   approximate_cross_output | boost::adaptors::transformed(my_projection));
 
   return output;
 }
@@ -193,14 +191,16 @@ trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
                            IntegrationOptions options)
 {
   OrbitCrossOutput<typename System::StateType> output{};
+  output.initial_point = init_state;
 
   auto orbit = make_ParticleOrbit(sys_and_pc, init_state, integration_time, options);
 
   const auto approximate_points = pick_orbit_points_that_cross_surface(orbit,
                                                                        sys_and_pc.poincare_surface());
 
-  return trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
+  output.cross_points =  trace_cross_points_on_cross_surface(sys_and_pc, approximate_points);
 
+  return output;
 }
 
 template<typename System>
