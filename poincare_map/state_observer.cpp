@@ -8,6 +8,7 @@
 #include <string>
 #include <cmath>
 #include <stdexcept>
+#include <boost/math/constants/constants.hpp>
 
 #include "samplingCollections.hpp"
 #include "armadillo_state.hpp"
@@ -193,120 +194,65 @@ InputOptions parse_input (int argc, char *argv[])
 
 }
 
-template<typename System>
-auto system_and_poincare_surface_for_closed_orbit_integration (System sys, const typename System::StateType& init_state)
-{
-  const auto zero_cross_position = init_state[static_cast<unsigned >(VariableTag::q)];
-  typename System::StateType init_derivatives{};
-  sys(init_state, init_derivatives, 0);
-
-  const auto init_dqdt = init_derivatives[static_cast<unsigned >(VariableTag::q)];
-
-  const int zero_cross_direction = (init_dqdt > 0) - (init_dqdt < 0); //direction is the sign of dqdt
-
-
-  auto my_poincare_surface = Surface{VariableTag::q,
-                                     zero_cross_position,
-                                     zero_cross_direction};
-
-  return make_system_and_poincare_surface(sys, my_poincare_surface);
-}
-
-template<typename T>
-class BlackHoleContainer {
+class ActionIntegrationResult {
+ private:
+  double Action_;
+  double theta_period_;
+  double delta_phi_;
  public:
-  using value_type = T;
-  BlackHoleContainer () = default;
-  template<typename S>
-  void push_back (const S&) const noexcept
+  ActionIntegrationResult (double Action, double theta_period, double delta_phi)
+      : Action_{Action}, theta_period_{theta_period}, delta_phi_{delta_phi}
   { };
-  void pop_back() const noexcept
-  { };
-};
-
-template<typename System, typename OutputContainer>
-auto
-integrate_along_closed_orbit_impl (System sys,
-                                   const typename System::StateType& first_point,
-                                   OutputContainer& outputContainer,
-                                   double max_time,
-                                   IntegrationOptions integrationOptions)
-{
-  auto my_system_and_pc = system_and_poincare_surface_for_closed_orbit_integration(sys, first_point);
-
-  auto orbit1 = make_ParticleOrbit(my_system_and_pc, first_point, max_time, integrationOptions);
-
-  auto orbit_range = orbit1.range();
-
-  auto surface_fun = [surf = my_system_and_pc.poincare_surface()] (auto s)
-  { return surf.eval(s); };
-
-  auto close_enough_to_initial_point = [initial_point = first_point, options = integrationOptions] (const auto& s)
+  double Action () const noexcept
   {
-      return std::abs(initial_point[0] - s[0]) < options.abs_err * 100;
+    return Action_;
+  };
+  double theta_period () const noexcept
+  {
+    return theta_period_;
+  };
+  double delta_phi () const noexcept
+  {
+    return delta_phi_;
   };
 
-  const auto begin_range = orbit_range.begin();
-  const auto end_range = orbit_range.end();
-  auto range_it = begin_range;
+  double omega_theta () const
+  {
+    using boost::math::double_constants::two_pi;
+    return two_pi / theta_period();
+  };
 
-  while (true)
-    {
-      range_it = PanosUtilities::copy_until_zero_cross_transformed(range_it,
-                                                             end_range,
-                                                             std::back_inserter(outputContainer),
-                                                             surface_fun,
-                                                             1.0,
-                                                             my_system_and_pc.poincare_surface().direction);
+  double g_factor () const noexcept
+  {
+    using boost::math::double_constants::one_div_two_pi;
+    return delta_phi() * one_div_two_pi;
+  };
 
-      if (range_it == orbit_range.end())
-        {
+  double omega_phi () const
+  {
+    return delta_phi() / theta_period();
+  };
 
-          throw std::runtime_error("orbit did not close yet");
-        }
-
-      else
-        {
-          const auto refined_point = accurate_from_rough_cross_point(my_system_and_pc, *range_it);
-
-          if (close_enough_to_initial_point(refined_point))
-            {
-              outputContainer.pop_back();
-              outputContainer.push_back(refined_point);
-              return refined_point;
-            }
-        }
-
-    }
-
-}
+};
 
 template<typename System>
-std::vector<typename System::StateType>
-integrate_along_closed_orbit (System sys,
-                              const typename System::StateType& first_point,
-                              double max_time,
-                              IntegrationOptions integrationOptions)
+ActionIntegrationResult
+action_integration (System sys,
+                    const typename System::StateType& first_point,
+                    double max_time,
+                    IntegrationOptions integrationOptions)
 {
+  using boost::math::double_constants::one_div_two_pi;
 
-  std::vector<typename System::StateType> output{};
-  integrate_along_closed_orbit_impl(sys,first_point,output,max_time,integrationOptions);
-  return output;
-}
+  const auto last_point = last_point_on_closed_orbit(sys,first_point,max_time,integrationOptions);
+  ///TODO: Replace raw indices with variable tags
 
+  const auto normalized_delta_Action = (last_point[4]-first_point[4])*one_div_two_pi;
+  const auto theta_period = last_point[5]-first_point[5];
+  const auto delta_phi = last_point[3]-first_point[3];
 
-template<typename System>
-typename System::StateType
-last_point_on_closed_orbit (System sys,
-                              const typename System::StateType& first_point,
-                              double max_time,
-                              IntegrationOptions integrationOptions)
-{
-
-  BlackHoleContainer<typename System::StateType> no_output{};
-  return integrate_along_closed_orbit_impl(sys,first_point,no_output,max_time,integrationOptions);
-}
-
+  return ActionIntegrationResult{normalized_delta_Action,theta_period,delta_phi};
+};
 int main (int argc, char *argv[])
 {
 
@@ -327,16 +273,32 @@ int main (int argc, char *argv[])
 
   auto my_sys = DS::UnperturbedExtendedHarmonicOscillator();
 
+  std::cout<<"Demonstrate integration of single init state\n";
   const auto init_state = init_states[30];
+  std::cout << "init_state = "<<init_state;
+
   const auto closed_orbit = integrate_along_closed_orbit(my_sys, init_state, user_options.integration_time, options);
   const auto last_point = last_point_on_closed_orbit(my_sys, init_state, user_options.integration_time, options);
 
-  for (const auto & s : closed_orbit)
-    std::cout<<s;
+  for (const auto& s : closed_orbit)
+    std::cout << s;
 
   std::cout << "init_state " << init_state <<
-            "final_state" << closed_orbit.back()<<
-                                                "only final state"<< last_point;
+            "final_state" << closed_orbit.back() <<
+            "only final state" << last_point;
+
+  std::cout<<"\nEnd Demonstratie integration of single init state\n";
+
+  std::cout<<"Action integration for all states\n\n";
+  std::cout<< "init_F\t\tAction\tomega_theta\tomega_phi\tg_factor\n";
+
+  for (const auto & s:init_states)
+    {
+      const auto action_result = action_integration(my_sys,s,user_options.integration_time,options);
+      std::cout<<s[2]<<'\t'<<action_result.Action()<<'\t'<<action_result.omega_theta()
+               <<'\t'<<action_result.omega_phi()<<'\t'<<action_result.g_factor()<<'\n';
+
+    }
 
   return 0;
 }

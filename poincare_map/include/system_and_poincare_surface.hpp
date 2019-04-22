@@ -7,7 +7,7 @@
 
 #include "myUtilities/wrap.hpp"
 
-
+///TODO: Expand and Rename Variable Tags
 enum class VariableTag : unsigned {
   p = 0,
   q = 1,

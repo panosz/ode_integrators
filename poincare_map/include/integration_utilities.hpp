@@ -167,15 +167,12 @@ rough_cross_points (OrbitType& orbit, Surface surface)
   return output;
 }
 
-
 template<typename System>
 typename System::StateType
 accurate_from_rough_cross_point (SystemAndPoincareSurface<System> sys, const typename System::StateType& rough_cross_point)
 {
- return step_on_surface(sys, rough_cross_point, ErrorStepperType<System>());
+  return step_on_surface(sys, rough_cross_point, ErrorStepperType<System>());
 }
-
-
 
 template<typename System>
 std::vector<typename System::StateType>
@@ -207,7 +204,7 @@ trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
 
   auto cross_points = accurate_from_rough_cross_points(sys_and_pc, approximate_points);
 
-  return make_OrbitCrossOutput(init_state,cross_points);
+  return make_OrbitCrossOutput(init_state, cross_points);
 }
 
 template<typename System>
@@ -224,6 +221,125 @@ trace_on_poincare_surface (SystemAndPoincareSurface<System> sys_and_pc,
 
   return output;
 
+}
+
+namespace
+{
+
+    template<typename T>
+    class BlackHoleContainer {
+     public:
+      using value_type = T;
+      BlackHoleContainer () = default;
+      template<typename S>
+      void push_back (const S&) const noexcept
+      { }
+      void pop_back () const noexcept
+      { }
+    };
+
+
+    template<typename System>
+    auto system_and_poincare_surface_for_closed_orbit_integration (System sys, const typename System::StateType& init_state)
+    {
+      const auto zero_cross_position = init_state[static_cast<unsigned >(VariableTag::q)];
+      typename System::StateType init_derivatives{};
+      sys(init_state, init_derivatives, 0);
+
+      const auto init_dqdt = init_derivatives[static_cast<unsigned >(VariableTag::q)];
+
+      const int zero_cross_direction = (init_dqdt > 0) - (init_dqdt < 0); //direction is the sign of dqdt
+
+
+      auto my_poincare_surface = Surface{VariableTag::q,
+                                         zero_cross_position,
+                                         zero_cross_direction};
+
+      return make_system_and_poincare_surface(sys, my_poincare_surface);
+    }
+
+
+    template<typename System, typename OutputContainer>
+    auto
+    integrate_along_closed_orbit_impl (System sys,
+                                       const typename System::StateType& first_point,
+                                       OutputContainer& outputContainer,
+                                       double max_time,
+                                       IntegrationOptions integrationOptions)
+    {
+      auto my_system_and_pc = system_and_poincare_surface_for_closed_orbit_integration(sys, first_point);
+
+      auto orbit1 = make_ParticleOrbit(my_system_and_pc, first_point, max_time, integrationOptions);
+
+      auto orbit_range = orbit1.range();
+
+      auto surface_fun = [surf = my_system_and_pc.poincare_surface()] (auto s)
+      { return surf.eval(s); };
+
+      auto close_enough_to_initial_point = [initial_point = first_point, options = integrationOptions] (const auto& s)
+      {
+          return std::abs(initial_point[0] - s[0]) < options.abs_err * 100;
+      };
+
+      const auto begin_range = orbit_range.begin();
+      const auto end_range = orbit_range.end();
+      auto range_it = begin_range;
+
+      while (true)
+        {
+          range_it = PanosUtilities::copy_until_zero_cross_transformed(range_it,
+                                                                       end_range,
+                                                                       std::back_inserter(outputContainer),
+                                                                       surface_fun,
+                                                                       1.0,
+                                                                       my_system_and_pc.poincare_surface().direction);
+
+          if (range_it == orbit_range.end())
+            {
+
+              throw std::runtime_error("orbit did not close yet");
+            }
+
+          else
+            {
+              const auto refined_point = accurate_from_rough_cross_point(my_system_and_pc, *range_it);
+
+              if (close_enough_to_initial_point(refined_point))
+                {
+                  outputContainer.pop_back();
+                  outputContainer.push_back(refined_point);
+                  return refined_point;
+                }
+            }
+
+        }
+
+    }
+}
+
+template<typename System>
+std::vector<typename System::StateType>
+integrate_along_closed_orbit (System sys,
+                              const typename System::StateType& first_point,
+                              double max_time,
+                              IntegrationOptions integrationOptions)
+{
+
+  std::vector<typename System::StateType> output{};
+  integrate_along_closed_orbit_impl(sys, first_point, output, max_time, integrationOptions);
+  return output;
+}
+
+template<typename System>
+typename System::StateType
+last_point_on_closed_orbit (System sys,
+                            const typename System::StateType& first_point,
+                            double max_time,
+                            IntegrationOptions integrationOptions)
+{
+
+  BlackHoleContainer<typename System::StateType> no_output{};
+  return integrate_along_closed_orbit_impl(sys, first_point, no_output, max_time, integrationOptions);
 }
 
 #endif //ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
