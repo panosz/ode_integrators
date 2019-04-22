@@ -167,6 +167,16 @@ rough_cross_points (OrbitType& orbit, Surface surface)
   return output;
 }
 
+
+template<typename System>
+typename System::StateType
+accurate_from_rough_cross_point (SystemAndPoincareSurface<System> sys, const typename System::StateType& rough_cross_point)
+{
+ return step_on_surface(sys, rough_cross_point, ErrorStepperType<System>());
+}
+
+
+
 template<typename System>
 std::vector<typename System::StateType>
 accurate_from_rough_cross_points (SystemAndPoincareSurface<System> sys,
@@ -174,11 +184,11 @@ accurate_from_rough_cross_points (SystemAndPoincareSurface<System> sys,
 {
   std::vector<typename System::StateType> fine_cross_output{};
 
-  const auto my_projection = [sys] (typename System::StateType s)
-  { return step_on_surface(sys, s, ErrorStepperType<System>()); };
+  const auto refine_point = [sys] (typename System::StateType s)
+  { return accurate_from_rough_cross_point(sys, s); };
 
   boost::push_back(fine_cross_output,
-                   rough_cross_input | boost::adaptors::transformed(my_projection));
+                   rough_cross_input | boost::adaptors::transformed(refine_point));
 
   return fine_cross_output;
 }

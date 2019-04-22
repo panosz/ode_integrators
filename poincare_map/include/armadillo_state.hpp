@@ -15,7 +15,7 @@ namespace DS
 
     template<arma::uword N>
     using armadillo_state = armadillo_base_state::fixed<N>;
-    
+
 }
 
 template<arma::uword N>

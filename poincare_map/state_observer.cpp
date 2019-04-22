@@ -1,12 +1,13 @@
 //
 // Created by Panagiotis Zestanakis on 18/09/18.
 //
-
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <filesystem>
 #include <string>
 #include <cmath>
+#include <stdexcept>
 
 #include "samplingCollections.hpp"
 #include "armadillo_state.hpp"
@@ -21,18 +22,28 @@
 namespace DS
 {
 
-    using myState = armadillo_state<4>;
+    using myState = armadillo_state<6>;
 
     myState unperturbedExtendedHOderivatives (const myState& s)
     {
+      const auto& p = s[0];
       const auto& q = s[1];
       const auto& F = s[2];
 
+      const auto dpdt = -F * sin(q);
+      const auto dqdt = p;
+      const auto dFdt = 0;
+      const auto dchidt = -cos(q);
+      const auto dJdt = p * dqdt;
+      const auto dtdt = 1;
+
       return myState{
-          -F * sin(q),
-          s[0],
-          0,
-          -cos(q)
+          dpdt,
+          dqdt,
+          dFdt,
+          -cos(q),
+          dJdt,
+          dtdt
       };
     }
 
@@ -65,6 +76,20 @@ namespace DS
 
     };
 
+    class UnperturbedExtendedHarmonicOscillator {
+
+     public:
+      using StateType = myState;
+
+      UnperturbedExtendedHarmonicOscillator () = default;
+
+      void operator() (const StateType& s, StateType& dsdt, const double t) const
+      {
+        dsdt = unperturbedExtendedHOderivatives(s);
+      }
+
+    };
+
     class ExtendedHarmonicOscillator {
 
       double amplitude_ = 0;
@@ -84,7 +109,6 @@ namespace DS
     };
 
 }
-
 
 void print_usage_string ()
 {
@@ -117,7 +141,6 @@ double get_double_from_input (const std::string& input, const std::string& param
   return out;
 }
 
-
 int get_int_from_input (const std::string& input, const std::string& parameter)
 {
   int out;
@@ -133,7 +156,6 @@ int get_int_from_input (const std::string& input, const std::string& parameter)
 
   return out;
 }
-
 
 InputOptions parse_input (int argc, char *argv[])
 {
@@ -162,14 +184,127 @@ InputOptions parse_input (int argc, char *argv[])
 
   inputOptions.input_filename = argv[1];
 
-  inputOptions.integration_time = get_double_from_input(argv[2],"integration time");
-  inputOptions.perturbation_amplitude = get_double_from_input(argv[3],"perturbation amplitude");
-  inputOptions.q_harmonic = get_int_from_input(argv[4],"q_harmonic");
-  inputOptions.chi_harmonic = get_int_from_input(argv[5],"chi_harmonic");
-
+  inputOptions.integration_time = get_double_from_input(argv[2], "integration time");
+  inputOptions.perturbation_amplitude = get_double_from_input(argv[3], "perturbation amplitude");
+  inputOptions.q_harmonic = get_int_from_input(argv[4], "q_harmonic");
+  inputOptions.chi_harmonic = get_int_from_input(argv[5], "chi_harmonic");
 
   return inputOptions;
 
+}
+
+template<typename System>
+auto system_and_poincare_surface_for_closed_orbit_integration (System sys, const typename System::StateType& init_state)
+{
+  const auto zero_cross_position = init_state[static_cast<unsigned >(VariableTag::q)];
+  typename System::StateType init_derivatives{};
+  sys(init_state, init_derivatives, 0);
+
+  const auto init_dqdt = init_derivatives[static_cast<unsigned >(VariableTag::q)];
+
+  const int zero_cross_direction = (init_dqdt > 0) - (init_dqdt < 0); //direction is the sign of dqdt
+
+
+  auto my_poincare_surface = Surface{VariableTag::q,
+                                     zero_cross_position,
+                                     zero_cross_direction};
+
+  return make_system_and_poincare_surface(sys, my_poincare_surface);
+}
+
+template<typename T>
+class BlackHoleContainer {
+ public:
+  using value_type = T;
+  BlackHoleContainer () = default;
+  template<typename S>
+  void push_back (const S&) const noexcept
+  { };
+  void pop_back() const noexcept
+  { };
+};
+
+template<typename System, typename OutputContainer>
+auto
+integrate_along_closed_orbit_impl (System sys,
+                                   const typename System::StateType& first_point,
+                                   OutputContainer& outputContainer,
+                                   double max_time,
+                                   IntegrationOptions integrationOptions)
+{
+  auto my_system_and_pc = system_and_poincare_surface_for_closed_orbit_integration(sys, first_point);
+
+  auto orbit1 = make_ParticleOrbit(my_system_and_pc, first_point, max_time, integrationOptions);
+
+  auto orbit_range = orbit1.range();
+
+  auto surface_fun = [surf = my_system_and_pc.poincare_surface()] (auto s)
+  { return surf.eval(s); };
+
+  auto close_enough_to_initial_point = [initial_point = first_point, options = integrationOptions] (const auto& s)
+  {
+      return std::abs(initial_point[0] - s[0]) < options.abs_err * 100;
+  };
+
+  const auto begin_range = orbit_range.begin();
+  const auto end_range = orbit_range.end();
+  auto range_it = begin_range;
+
+  while (true)
+    {
+      range_it = PanosUtilities::copy_until_zero_cross_transformed(range_it,
+                                                             end_range,
+                                                             std::back_inserter(outputContainer),
+                                                             surface_fun,
+                                                             1.0,
+                                                             my_system_and_pc.poincare_surface().direction);
+
+      if (range_it == orbit_range.end())
+        {
+
+          throw std::runtime_error("orbit did not close yet");
+        }
+
+      else
+        {
+          const auto refined_point = accurate_from_rough_cross_point(my_system_and_pc, *range_it);
+
+          if (close_enough_to_initial_point(refined_point))
+            {
+              outputContainer.pop_back();
+              outputContainer.push_back(refined_point);
+              return refined_point;
+            }
+        }
+
+    }
+
+}
+
+template<typename System>
+std::vector<typename System::StateType>
+integrate_along_closed_orbit (System sys,
+                              const typename System::StateType& first_point,
+                              double max_time,
+                              IntegrationOptions integrationOptions)
+{
+
+  std::vector<typename System::StateType> output{};
+  integrate_along_closed_orbit_impl(sys,first_point,output,max_time,integrationOptions);
+  return output;
+}
+
+
+template<typename System>
+typename System::StateType
+last_point_on_closed_orbit (System sys,
+                              const typename System::StateType& first_point,
+                              double max_time,
+                              IntegrationOptions integrationOptions)
+{
+
+  BlackHoleContainer<typename System::StateType> no_output{};
+  return integrate_along_closed_orbit_impl(sys,first_point,no_output,max_time,integrationOptions);
 }
 
 int main (int argc, char *argv[])
@@ -184,30 +319,24 @@ int main (int argc, char *argv[])
   const auto chi_harmonic = user_options.chi_harmonic;
 
   const auto init_states =
-      get_state_from_file<DS::ExtendedHarmonicOscillator::StateType>(input_filename, 4);
+      get_state_from_file<DS::ExtendedHarmonicOscillator::StateType>(input_filename, 6);
 
   std::cout << "Init States:\n" << init_states << '\n';
 
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
 
-  const int zero_cross_positive_direction = 1;
-  const double zero_cross_position = 0.0;
+  auto my_sys = DS::UnperturbedExtendedHarmonicOscillator();
 
-  const auto perturbation_form = DS::SinePerturbation(q_harmonic, chi_harmonic);
+  const auto init_state = init_states[30];
+  const auto closed_orbit = integrate_along_closed_orbit(my_sys, init_state, user_options.integration_time, options);
+  const auto last_point = last_point_on_closed_orbit(my_sys, init_state, user_options.integration_time, options);
 
-  const auto my_sys = DS::ExtendedHarmonicOscillator(perturbation_amplitude, perturbation_form);
+  for (const auto & s : closed_orbit)
+    std::cout<<s;
 
-  const auto my_poincare_surface = Surface{VariableTag::q,
-                                           zero_cross_position,
-                                           zero_cross_positive_direction};
-
-  auto my_system_and_pc = make_system_and_poincare_surface(my_sys, my_poincare_surface);
-
-  auto poincare_points = trace_on_poincare_surface(my_system_and_pc, init_states, integration_time, options);
-
-  write_to_hdf5_files("cross", poincare_points);
-  write_to_text_files("cross", poincare_points);
-
+  std::cout << "init_state " << init_state <<
+            "final_state" << closed_orbit.back()<<
+                                                "only final state"<< last_point;
 
   return 0;
 }
