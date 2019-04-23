@@ -1,4 +1,3 @@
-
 find_package(Boost REQUIRED)
 
 find_package(myUtilities REQUIRED)
@@ -7,15 +6,15 @@ find_package(Armadillo REQUIRED)
 
 configure_file (
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp"
-)
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp")
 
 add_library(poincare_map SHARED include/version.hpp src/input_output/prepare.cpp
         include/input_output/prepare.hpp src/input_output/text_file_io.cpp
         include/input_output/text_file_io.hpp src/samplingCollections.cpp include/samplingCollections.hpp
         src/system_and_poincare_surface.cpp include/system_and_poincare_surface.hpp
         src/integration_utilities.cpp include/integration_utilities.hpp src/state_wrapper.cpp include/state_wrapper.hpp
-        include/armadillo_state.hpp src/armadillo_state.cpp src/input_output/hdf5_io.cpp include/input_output/hdf5_io.hpp)
+        include/armadillo_state.hpp src/armadillo_state.cpp src/input_output/hdf5_io.cpp include/input_output/hdf5_io.hpp
+        src/hamiltonian_dynamic_system.cpp include/hamiltonian_dynamic_system.hpp)
 
 target_compile_options(poincare_map PRIVATE
         -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
