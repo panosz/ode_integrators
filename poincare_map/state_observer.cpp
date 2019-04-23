@@ -25,89 +25,90 @@ namespace DS
 
     using myState = armadillo_state<6>;
 
-    myState unperturbedExtendedHOderivatives (const myState& s)
-    {
-      const auto& p = s[0];
-      const auto& q = s[1];
-      const auto& F = s[2];
-
-      const auto dpdt = -F * sin(q);
-      const auto dqdt = p;
-      const auto dFdt = 0;
-      const auto dchidt = -cos(q);
-      const auto dJdt = p * dqdt;
-      const auto dtdt = 1;
-
-      return myState{
-          dpdt,
-          dqdt,
-          dFdt,
-          -cos(q),
-          dJdt,
-          dtdt
-      };
-    }
-
-    /// \brief Models a perturbation $\Delta H = \sin(m q + n chi)$
-    struct SinePerturbation {
-        int q_harmonic;
-        int chi_harmonic;
-        SinePerturbation (int qHarmonic, int chiHarmonic)
-            : q_harmonic(qHarmonic), chi_harmonic(chiHarmonic)
+    struct OneForm {
+        double p;
+        double q;
+        OneForm (double P, double Q)
+            : p(P), q(Q)
         { }
-
-        double phase (const myState& s) const
-        {
-          const auto& q = s[1];
-          const auto& chi = s[3];
-
-          return q_harmonic * q + chi_harmonic * chi;
-        }
-
-        myState operator() (const myState& s, double /*t*/) const
-        {
-          const auto myCos = cos(phase(s));
-
-          const auto dpdt = -q_harmonic * myCos;
-          const auto dFdt = -chi_harmonic * myCos;
-
-          return myState{dpdt, 0, dFdt, 0};
-
-        }
-
     };
 
-    class UnperturbedExtendedHarmonicOscillator {
+    class UnperturbedExtendedPendulumHamiltonian {
+
+     private:
+      double M_;
 
      public:
-      using StateType = myState;
+      using StateType=myState;
 
-      UnperturbedExtendedHarmonicOscillator () = default;
+      explicit UnperturbedExtendedPendulumHamiltonian (double M)
+          : M_{M}
+      { };
 
-      void operator() (const StateType& s, StateType& dsdt, const double t) const
+      double operator() (const myState& s) const
       {
-        dsdt = unperturbedExtendedHOderivatives(s);
+        const auto& p = s[0];
+        const auto& q = s[1];
+        const auto& F = s[2];
+        return M_ * p * p / 2 - F * cos(q);
+      }
+
+      double dp (const myState& s) const noexcept
+      {
+        const auto& p = s[0];
+        const auto& q = s[1];
+        const auto& F = s[2];
+        return M_ * p;
+      }
+
+      double dq (const myState& s) const noexcept
+      {
+        const auto& q = s[1];
+        const auto& F = s[2];
+        return F * sin(q);
+      }
+
+      double dF (const myState& s) const noexcept
+      {
+        const auto& q = s[1];
+        return -cos(q);
       }
 
     };
 
-    class ExtendedHarmonicOscillator {
+    template<typename UnperturbedHamiltonian>
+    class UnperturbedDynamicSystem {
 
-      double amplitude_ = 0;
-      SinePerturbation perturb_;
+     private:
+      UnperturbedHamiltonian h_;
      public:
-      using StateType = myState;
+      using StateType = typename UnperturbedHamiltonian::StateType;
 
-      ExtendedHarmonicOscillator (double amplitude, const SinePerturbation& perturb)
-          : amplitude_(amplitude), perturb_(perturb)
+      explicit UnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+          : h_{h}
       { }
 
-      void operator() (const StateType& s, StateType& dsdt, const double t) const
+      void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
       {
-        dsdt = unperturbedExtendedHOderivatives(s) + amplitude_ * perturb_(s, t);
-      }
+        const auto& p = s[0];
 
+        dsdt[0] = -h_.dq(s);
+        dsdt[1] = h_.dp(s);
+        dsdt[2] = 0;
+        dsdt[3] = h_.dF(s);
+        dsdt[4] = p *dsdt[1];
+        dsdt[5] = 1;
+      }
     };
+
+    template<typename UnperturbedHamiltonian>
+    UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem(const UnperturbedHamiltonian& h)
+    {
+      return UnperturbedDynamicSystem<UnperturbedHamiltonian>(h);
+    }
+
+
+
 
 }
 
@@ -244,14 +245,14 @@ action_integration (System sys,
 {
   using boost::math::double_constants::one_div_two_pi;
 
-  const auto last_point = last_point_on_closed_orbit(sys,first_point,max_time,integrationOptions);
+  const auto last_point = last_point_on_closed_orbit(sys, first_point, max_time, integrationOptions);
   ///TODO: Replace raw indices with variable tags
 
-  const auto normalized_delta_Action = (last_point[4]-first_point[4])*one_div_two_pi;
-  const auto theta_period = last_point[5]-first_point[5];
-  const auto delta_phi = last_point[3]-first_point[3];
+  const auto normalized_delta_Action = (last_point[4] - first_point[4]) * one_div_two_pi;
+  const auto theta_period = last_point[5] - first_point[5];
+  const auto delta_phi = last_point[3] - first_point[3];
 
-  return ActionIntegrationResult{normalized_delta_Action,theta_period,delta_phi};
+  return ActionIntegrationResult{normalized_delta_Action, theta_period, delta_phi};
 };
 int main (int argc, char *argv[])
 {
@@ -265,17 +266,17 @@ int main (int argc, char *argv[])
   const auto chi_harmonic = user_options.chi_harmonic;
 
   const auto init_states =
-      get_state_from_file<DS::ExtendedHarmonicOscillator::StateType>(input_filename, 6);
+      get_state_from_file<DS::UnperturbedExtendedPendulumHamiltonian::StateType>(input_filename, 6);
 
   std::cout << "Init States:\n" << init_states << '\n';
 
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
 
-  auto my_sys = DS::UnperturbedExtendedHarmonicOscillator();
+  auto my_sys = DS::makeUnperturbedDynamicSystem(DS::UnperturbedExtendedPendulumHamiltonian(1.0));
 
-  std::cout<<"Demonstrate integration of single init state\n";
-  const auto init_state = init_states[30];
-  std::cout << "init_state = "<<init_state;
+  std::cout << "Demonstrate integration of single init state\n";
+  const auto init_state = init_states[0];
+  std::cout << "init_state = " << init_state;
 
   const auto closed_orbit = integrate_along_closed_orbit(my_sys, init_state, user_options.integration_time, options);
   const auto last_point = last_point_on_closed_orbit(my_sys, init_state, user_options.integration_time, options);
@@ -287,16 +288,16 @@ int main (int argc, char *argv[])
             "final_state" << closed_orbit.back() <<
             "only final state" << last_point;
 
-  std::cout<<"\nEnd Demonstratie integration of single init state\n";
+  std::cout << "\nEnd Demonstratie integration of single init state\n";
 
-  std::cout<<"Action integration for all states\n\n";
-  std::cout<< "init_F\t\tAction\tomega_theta\tomega_phi\tg_factor\n";
+  std::cout << "Action integration for all states\n\n";
+  std::cout << "init_F\t\tAction\tomega_theta\tomega_phi\tg_factor\n";
 
-  for (const auto & s:init_states)
+  for (const auto& s:init_states)
     {
-      const auto action_result = action_integration(my_sys,s,user_options.integration_time,options);
-      std::cout<<s[2]<<'\t'<<action_result.Action()<<'\t'<<action_result.omega_theta()
-               <<'\t'<<action_result.omega_phi()<<'\t'<<action_result.g_factor()<<'\n';
+      const auto action_result = action_integration(my_sys, s, user_options.integration_time, options);
+      std::cout << s[2] << '\t' << action_result.Action() << '\t' << action_result.omega_theta()
+                << '\t' << action_result.omega_phi() << '\t' << action_result.g_factor() << '\n';
 
     }
 
