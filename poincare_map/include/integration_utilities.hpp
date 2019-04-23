@@ -242,16 +242,16 @@ namespace
     template<typename System>
     auto system_and_poincare_surface_for_closed_orbit_integration (System sys, const typename System::StateType& init_state)
     {
-      const auto zero_cross_position = init_state[static_cast<unsigned >(VariableTag::q)];
+      const auto zero_cross_position = init_state[static_cast<unsigned >(CoordinateTag::q)];
       typename System::StateType init_derivatives{};
       sys(init_state, init_derivatives, 0);
 
-      const auto init_dqdt = init_derivatives[static_cast<unsigned >(VariableTag::q)];
+      const auto init_dqdt = init_derivatives[static_cast<unsigned >(CoordinateTag::q)];
 
       const int zero_cross_direction = (init_dqdt > 0) - (init_dqdt < 0); //direction is the sign of dqdt
 
 
-      auto my_poincare_surface = Surface{VariableTag::q,
+      auto my_poincare_surface = Surface{CoordinateTag::q,
                                          zero_cross_position,
                                          zero_cross_direction};
 
@@ -278,7 +278,9 @@ namespace
 
       auto close_enough_to_initial_point = [initial_point = first_point, options = integrationOptions] (const auto& s)
       {
-          return std::abs(initial_point[0] - s[0]) < options.abs_err * 100;
+          const auto p_init = initial_point[static_cast<unsigned>(CoordinateTag::p)];
+          const auto p_current = s[static_cast<unsigned>(CoordinateTag::p)];
+          return std::abs(p_current - p_init) < options.abs_err * 100;
       };
 
       const auto begin_range = orbit_range.begin();

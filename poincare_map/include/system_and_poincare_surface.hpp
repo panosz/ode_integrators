@@ -7,29 +7,32 @@
 
 #include "myUtilities/wrap.hpp"
 
-///TODO: Expand and Rename Variable Tags
-enum class VariableTag : unsigned {
+///TODO: Expand and Rename Coordinate Tags
+enum class CoordinateTag : unsigned {
   p = 0,
   q = 1,
   F = 2,
-  chi = 3
+  phi = 3,
+  J = 4,
+  t = 5,
+  beta = 6
 };
 
 struct Surface {
-    VariableTag variable_tag;
+    CoordinateTag coordinate_tag;
     double position;
     int direction;
-    Surface (VariableTag vt, double pos, int direct)
-        : variable_tag(vt), position(pos), direction(direct)
+    Surface (CoordinateTag ct, double pos, int direct)
+        : coordinate_tag(ct), position(pos), direction(direct)
     { }
 
     template <typename State>
     double eval(const State& s) const noexcept
     {
-      const auto index = static_cast<unsigned>(variable_tag);
+      const auto index = static_cast<unsigned>(coordinate_tag);
       const auto absolute_distance =  s[index] - position;
 
-      if (variable_tag == VariableTag::p || variable_tag==VariableTag::F)
+      if (coordinate_tag == CoordinateTag::p || coordinate_tag==CoordinateTag::F)
         return absolute_distance;
 
       else return PanosUtilities::wrap_minus_pi_pi(absolute_distance);
@@ -69,7 +72,7 @@ class SystemAndPoincareSurface {
   {
     sys_(s, dsdt, t);
 
-    const auto index = static_cast<unsigned >(surf_.variable_tag);
+    const auto index = static_cast<unsigned >(surf_.coordinate_tag);
 
     const auto normalization = dsdt[index];
 

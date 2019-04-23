@@ -6,6 +6,7 @@
 #define ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
 #include <cmath>
 #include "armadillo_state.hpp"
+#include "system_and_poincare_surface.hpp"
 
 namespace DS
 {
@@ -34,28 +35,28 @@ namespace DS
 
       double operator() (const myState& s) const
       {
-        const auto& p = s[0];
-        const auto& q = s[1];
-        const auto& F = s[2];
+        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
         return M_ * p * p / 2 - F * cos(q);
       }
 
       double dp (const myState& s) const noexcept
       {
-        const auto& p = s[0];
+        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
         return M_ * p;
       }
 
       double dq (const myState& s) const noexcept
       {
-        const auto& q = s[1];
-        const auto& F = s[2];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
         return F * sin(q);
       }
 
       double dF (const myState& s) const noexcept
       {
-        const auto& q = s[1];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
         return -cos(q);
       }
 
@@ -90,7 +91,7 @@ namespace DS
 
       OneForm dJ(const StateType& s) const
       {
-        const double p = s[0];
+        const double p = s[static_cast<unsigned>(CoordinateTag::p)];
         return OneForm{0,p};
       }
 
@@ -103,12 +104,12 @@ namespace DS
       void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
       {
 
-        dsdt[0] = dpdt(s);
-        dsdt[1] = dqdt(s);
-        dsdt[2] = 0;
-        dsdt[3] = dphidt(s);
-        dsdt[4] = oneFormTimeDerivative(dJ(s),s);
-        dsdt[5] = 1;
+        dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(s);
+        dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(s);
+        dsdt[static_cast<unsigned>(CoordinateTag::F)] = 0;
+        dsdt[static_cast<unsigned>(CoordinateTag::phi)] = dphidt(s);
+        dsdt[static_cast<unsigned>(CoordinateTag::J)] = oneFormTimeDerivative(dJ(s),s);
+        dsdt[static_cast<unsigned>(CoordinateTag::t)] = 1;
       }
     };
 
