@@ -64,10 +64,37 @@ namespace DS
     template<typename UnperturbedHamiltonian>
     class UnperturbedDynamicSystem {
 
-     private:
-      UnperturbedHamiltonian h_;
      public:
       using StateType = typename UnperturbedHamiltonian::StateType;
+
+     private:
+      UnperturbedHamiltonian h_;
+
+      double dpdt(const StateType& s) const
+      {
+       return -h_.dq(s);
+      };
+      double dqdt(const StateType& s) const
+      {
+        return h_.dp(s);
+      }
+      double dphidt(const StateType& s) const
+      {
+        return h_.dF(s);
+      }
+
+      double oneFormTimeDerivative(const OneForm& of, const StateType& s) const
+      {
+        return of.p*dpdt(s) + of.q*dqdt(s);
+      };
+
+      OneForm dJ(const StateType& s) const
+      {
+        const double p = s[0];
+        return OneForm{0,p};
+      }
+
+     public:
 
       explicit UnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
           : h_{h}
@@ -75,25 +102,21 @@ namespace DS
 
       void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
       {
-        const auto& p = s[0];
 
-        dsdt[0] = -h_.dq(s);
-        dsdt[1] = h_.dp(s);
+        dsdt[0] = dpdt(s);
+        dsdt[1] = dqdt(s);
         dsdt[2] = 0;
-        dsdt[3] = h_.dF(s);
-        dsdt[4] = p *dsdt[1];
+        dsdt[3] = dphidt(s);
+        dsdt[4] = oneFormTimeDerivative(dJ(s),s);
         dsdt[5] = 1;
       }
     };
 
     template<typename UnperturbedHamiltonian>
-    UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem(const UnperturbedHamiltonian& h)
+    UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
     {
       return UnperturbedDynamicSystem<UnperturbedHamiltonian>(h);
     }
-
-
-
 
 }
 #endif //ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
