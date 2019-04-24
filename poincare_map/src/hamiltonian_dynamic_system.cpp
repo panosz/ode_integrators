@@ -3,3 +3,6 @@
 //
 
 #include "hamiltonian_dynamic_system.hpp"
+DS::Field::Field (double P, double Q)
+    : p(P), q(Q)
+{ }
