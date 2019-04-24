@@ -6,3 +6,6 @@
 DS::Field::Field (double P, double Q)
     : p(P), q(Q)
 { }
+DS::FieldAndFirstDerivatives::FieldAndFirstDerivatives (const DS::Field& F, const DS::FieldFirstDerivatives& dF)
+    : f{F}, df{dF}
+{ }
