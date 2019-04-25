@@ -13,7 +13,7 @@
 namespace DS
 {
 
-    using myState = armadillo_state<7>;
+    using myState = armadillo_state<8>;
 
     class UnperturbedExtendedPendulumHamiltonian {
 
@@ -116,6 +116,8 @@ namespace DS
 
         const auto f_and_df =caluclate_translation_field_and_first_derivatives(dh,d2h);
         const auto beta = calculate_beta(p,f_and_df);
+        const auto gamma = calculate_gamma(p,f_and_df,dh,d2h);
+
 
         dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
         dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
@@ -124,6 +126,8 @@ namespace DS
         dsdt[static_cast<unsigned>(CoordinateTag::J)] = oneFormTimeDerivative(dJ(s), dh);
         dsdt[static_cast<unsigned>(CoordinateTag::t)] = 1;
         dsdt[static_cast<unsigned>(CoordinateTag::beta)] = oneFormTimeDerivative(beta,dh);
+        dsdt[static_cast<unsigned>(CoordinateTag::gamma)] = oneFormTimeDerivative(gamma,dh);
+
       }
     };
 

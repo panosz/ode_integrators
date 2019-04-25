@@ -15,7 +15,8 @@ enum class CoordinateTag : unsigned {
   phi = 3,
   J = 4,
   t = 5,
-  beta = 6
+  beta = 6,
+  gamma = 7
 };
 
 struct Surface {

@@ -12,6 +12,14 @@ namespace DS
         : p(P), q(Q)
     { }
 
+    FieldAndFirstDerivatives::FieldAndFirstDerivatives (const DS::Field& F, const DS::FieldFirstDerivatives& dF)
+        : f{F}, df{dF}
+    { }
+
+    OneFormAndFirstDerivatives::OneFormAndFirstDerivatives (const OneForm& G, const OneFormFirstDerivatives& dG)
+        : g{G}, dg{dG}
+    { }
+
     VelocitySqAndFirstDerivatives
     calculate_vSq_and_first_derivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h)
     {
@@ -67,4 +75,22 @@ namespace DS
 
       return beta;
     }
+    OneForm
+    calculate_gamma (double p,
+                     const FieldAndFirstDerivatives& fieldAndFirstDerivatives,
+                     const FirstDerivatives& dh,
+                     const SecondDerivatives& d2h)
+    {
+      OneForm gamma{};
+
+      const auto &[f, df] = fieldAndFirstDerivatives;
+
+
+      //OneForm[Hf p Dt[fq, p] + fq p Dt[Hf, p], fp Hf + Hf p Dt[fq, q] + fq p Dt[Hf, q]]
+      gamma.p = dh.dF * p * df.q.dp + f.q * p * d2h.dp_dF;
+      gamma.q = f.p * dh.dF + dh.dF * p * df.q.dq + f.q * p * d2h.dq_dF;
+      return gamma;
+
+    }
+
 }

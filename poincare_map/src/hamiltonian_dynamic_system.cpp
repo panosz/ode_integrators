@@ -4,6 +4,4 @@
 
 #include "hamiltonian_dynamic_system.hpp"
 
-DS::FieldAndFirstDerivatives::FieldAndFirstDerivatives (const DS::Field& F, const DS::FieldFirstDerivatives& dF)
-    : f{F}, df{dF}
-{ }
+

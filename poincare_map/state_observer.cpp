@@ -185,7 +185,7 @@ int main (int argc, char *argv[])
   const auto phi_harmonic = user_options.phi_harmonic;
 
   const auto init_states =
-      get_state_from_file<DS::UnperturbedExtendedPendulumHamiltonian::StateType>(input_filename, 7);
+      get_state_from_file<DS::UnperturbedExtendedPendulumHamiltonian::StateType>(input_filename, 8);
 
   std::cout << "Init States:\n" << init_states << '\n';
 
@@ -194,7 +194,7 @@ int main (int argc, char *argv[])
   auto my_sys = DS::makeUnperturbedDynamicSystem(DS::UnperturbedExtendedPendulumHamiltonian(1.0));
 
   std::cout << "Demonstrate integration of single init state\n";
-  const auto init_state = init_states[0];
+  const auto init_state = init_states[10];
   std::cout << "init_state = " << init_state;
 
   const auto closed_orbit = integrate_along_closed_orbit(my_sys, init_state, user_options.integration_time, options);

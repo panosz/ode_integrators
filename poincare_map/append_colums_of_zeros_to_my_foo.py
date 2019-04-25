@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-n_extra_columns = 3
+n_extra_columns = 4
 foo_table = pd.read_csv('my_foo.txt',sep=' ')
 
 data = foo_table.values
