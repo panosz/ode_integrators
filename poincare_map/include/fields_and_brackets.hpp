@@ -59,18 +59,21 @@ namespace DS
 
     };
 
-    struct VelocitySqAndFirstDerivatives {
+    struct VelocitySqAndDerivatives {
         double v_Sq;
         FirstDerivatives dv_Sq;
+        SecondDerivatives d2v_Sq;
     };
 
-    VelocitySqAndFirstDerivatives
-    calculate_vSq_and_first_derivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h);
+    VelocitySqAndDerivatives
+    calculate_vSq_and_derivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h, const ThirdDerivatives& d3h);
 
     struct FieldFirstDerivatives {
         FirstDerivatives p{};
         FirstDerivatives q{};
     };
+
+    ///TODO: Calculate Field Second Derivatives
 
     struct FieldAndFirstDerivatives {
         Field f{};
@@ -93,7 +96,9 @@ namespace DS
 
 
     FieldAndFirstDerivatives
-    caluclate_translation_field_and_first_derivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h);
+    caluclate_translation_field_and_first_derivatives (const FirstDerivatives& dh,
+                                                       const SecondDerivatives& d2h,
+                                                       const ThirdDerivatives& d3h);
 
     OneForm calculate_beta (double p, const FieldAndFirstDerivatives& fieldAndFirstDerivatives);
 

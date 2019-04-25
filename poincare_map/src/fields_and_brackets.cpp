@@ -20,11 +20,11 @@ namespace DS
         : g{G}, dg{dG}
     { }
 
-    VelocitySqAndFirstDerivatives
-    calculate_vSq_and_first_derivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h)
+    VelocitySqAndDerivatives
+    calculate_vSq_and_derivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h, const ThirdDerivatives& d3h)
     {
       using boost::math::pow;
-      VelocitySqAndFirstDerivatives output{};
+      VelocitySqAndDerivatives output{};
 
       output.v_Sq = pow<2>(dh.dp) + pow<2>(dh.dq);
 
@@ -32,17 +32,44 @@ namespace DS
       output.dv_Sq.dq = 2 * (dh.dp * d2h.dp_dq + dh.dq * d2h.dq2);
       output.dv_Sq.dF = 2 * (dh.dp * d2h.dp_dF + dh.dq * d2h.dq_dF);
 
+
+      //2 (Dt[hp, p]^2 + hp Dt[hp, {p, 2}] + Dt[hq, p]^2 + hq Dt[hq, {p, 2}])
+      output.d2v_Sq.dp2 =
+          2 * (pow<2>(d2h.dp2) + dh.dp * d3h.dp3 + pow<2>(d2h.dp_dq) + dh.dq * d3h.dp2_dq);
+
+      //2 (Dt[hp, p] Dt[hp, q] + Dt[hq, p] Dt[hq, q] + hp Dt[hp, p, q] + hq Dt[hq, p, q])
+      output.d2v_Sq.dp_dq =
+          2 * (d2h.dp2 * d2h.dp_dq + d2h.dp_dq * d2h.dq2 + dh.dp * d3h.dp2_dq + dh.dq * d3h.dp_dq2);
+
+      //2 (Dt[hp, F] Dt[hp, p] + Dt[hq, F] Dt[hq, p] + hp Dt[hp, F, p] + hq Dt[hq, F, p])
+      output.d2v_Sq.dp_dF =
+          2 * (d2h.dp_dF * d2h.dp2 + d2h.dq_dF * d2h.dp_dq + dh.dp * d3h.dp2_dF + dh.dq * d3h.dp_dq_dF);
+
+      //2 (Dt[hp, q]^2 + hp Dt[hp, {q, 2}] + Dt[hq, q]^2 + hq Dt[hq, {q, 2}])
+      output.d2v_Sq.dq2 =
+          2 * (pow<2>(d2h.dp_dq) + dh.dp * d3h.dp_dq2 + pow<2>(d2h.dq2) + dh.dq * d3h.dq3);
+
+      //2 (Dt[hp, F] Dt[hp, q] + Dt[hq, F] Dt[hq, q] + hp Dt[hp, F, q] + hq Dt[hq, F, q])
+      output.d2v_Sq.dq_dF =
+          2 * (d2h.dp_dF * d2h.dp_dq + d2h.dq_dF * d2h.dq2 + dh.dp * d3h.dp_dq_dF + dh.dq * d3h.dq2_dF);
+
+      //2 (Dt[hp, F]^2 + hp Dt[hp, {F, 2}] + Dt[hq, F]^2 + hq Dt[hq, {F, 2}])
+      output.d2v_Sq.dF2 =
+          2 * (pow<2>(d2h.dp_dF) + dh.dp * d3h.dp_dF2 + pow<2>(d2h.dq_dF) + dh.dq * d3h.dq_dF2);
+
       return output;
     }
 
     FieldAndFirstDerivatives
-    caluclate_translation_field_and_first_derivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h)
+    caluclate_translation_field_and_first_derivatives (const FirstDerivatives& dh,
+                                                       const SecondDerivatives& d2h,
+                                                       const ThirdDerivatives& d3h)
     {
       using boost::math::pow;
       Field f{};
       FieldFirstDerivatives df{};
 
-      const auto[v_sq, dv_sq] = calculate_vSq_and_first_derivatives(dh, d2h);
+      const auto[v_sq, dv_sq, d2v_sq] = calculate_vSq_and_derivatives(dh, d2h, d3h);
 
       f.p = dh.dp / v_sq;
       f.q = dh.dq / v_sq;
