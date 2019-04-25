@@ -14,7 +14,7 @@ add_library(poincare_map SHARED include/version.hpp src/input_output/prepare.cpp
         src/system_and_poincare_surface.cpp include/system_and_poincare_surface.hpp
         src/integration_utilities.cpp include/integration_utilities.hpp
         include/armadillo_state.hpp src/armadillo_state.cpp src/input_output/hdf5_io.cpp include/input_output/hdf5_io.hpp
-        src/hamiltonian_dynamic_system.cpp include/hamiltonian_dynamic_system.hpp)
+        src/hamiltonian_dynamic_system.cpp include/hamiltonian_dynamic_system.hpp src/fields_and_brackets.cpp include/fields_and_brackets.hpp)
 
 target_compile_options(poincare_map PRIVATE
         -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic

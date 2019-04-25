@@ -7,63 +7,13 @@
 #include <cmath>
 #include "armadillo_state.hpp"
 #include "system_and_poincare_surface.hpp"
-#include <boost/math/special_functions/pow.hpp>
+#include "fields_and_brackets.hpp"
+#include <boost/math/constants/constants.hpp>
+
 namespace DS
 {
 
-    using myState = armadillo_state<6>;
-
-    struct OneForm {
-        double p = 0;
-        double q = 0;
-        OneForm () = default;
-
-        OneForm (double P, double Q)
-            : p(P), q(Q)
-        { }
-    };
-
-    struct Field {
-        double p = 0;
-        double q = 0;
-
-        Field () = default;
-        Field (double p, double q);
-    };
-
-    struct FirstDerivatives {
-        double dp = 0;
-        double dq = 0;
-        double dF = 0;
-    };
-
-    struct SecondDerivatives {
-        double dp2 = 0;
-        double dp_dq = 0;
-        double dp_dF = 0;
-
-        double dq2 = 0;
-        double dq_dF = 0;
-
-        double dF2 = 0;
-    };
-
-    struct ThirdDerivatives {
-
-        double dp3 = 0;
-        double dp2_dq = 0;
-        double dp2_dF = 0;
-        double dp_dq2 = 0;
-        double dp_dq_dF = 0;
-        double dp_dF2 = 0;
-
-        double dq3 = 0;
-        double dq2_dF = 0;
-        double dq_dF2 = 0;
-
-        double dF3 = 0;
-
-    };
+    using myState = armadillo_state<7>;
 
     class UnperturbedExtendedPendulumHamiltonian {
 
@@ -96,6 +46,24 @@ namespace DS
         derivs.dq = F * sin(q);
         derivs.dF = -cos(q);
         return derivs;
+      }
+
+      SecondDerivatives second_derivatives (const myState& s) const noexcept
+      {
+        SecondDerivatives second_derivs{};
+
+        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        second_derivs.dp2 = M_;
+        second_derivs.dp_dq = 0;
+        second_derivs.dp_dF = 0;
+        second_derivs.dq2 = F * cos(q);
+        second_derivs.dq_dF = sin(q);
+        second_derivs.dF2 = 0;
+
+        return second_derivs;
       }
 
     };
@@ -142,7 +110,12 @@ namespace DS
       void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
       {
 
+        const auto p = s[static_cast<unsigned >(CoordinateTag::p)];
         const auto dh = h_.first_derivatives(s);
+        const auto d2h =h_.second_derivatives(s);
+
+        const auto f_and_df =caluclate_translation_field_and_first_derivatives(dh,d2h);
+        const auto beta = calculate_beta(p,f_and_df);
 
         dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
         dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
@@ -150,6 +123,7 @@ namespace DS
         dsdt[static_cast<unsigned>(CoordinateTag::phi)] = dphidt(dh);
         dsdt[static_cast<unsigned>(CoordinateTag::J)] = oneFormTimeDerivative(dJ(s), dh);
         dsdt[static_cast<unsigned>(CoordinateTag::t)] = 1;
+        dsdt[static_cast<unsigned>(CoordinateTag::beta)] = oneFormTimeDerivative(beta,dh);
       }
     };
 
@@ -157,64 +131,6 @@ namespace DS
     UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
     {
       return UnperturbedDynamicSystem<UnperturbedHamiltonian>(h);
-    }
-
-    struct VelocitySqAndFirstDerivatives {
-        double v_Sq;
-        FirstDerivatives dv_Sq;
-    };
-
-    VelocitySqAndFirstDerivatives
-    v_fromHamiltonianDerivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h)
-    {
-      using boost::math::pow;
-      VelocitySqAndFirstDerivatives output{};
-
-      output.v_Sq = pow<2>(dh.dp) + pow<2>(dh.dq);
-
-      output.dv_Sq.dp = 2 * (dh.dp * d2h.dp2 + dh.dq * d2h.dp_dq);
-      output.dv_Sq.dq = 2 * (dh.dp * d2h.dp_dq + dh.dq * d2h.dq2);
-      output.dv_Sq.dF = 2 * (dh.dp * d2h.dp_dF + dh.dq * d2h.dq_dF);
-
-      return output;
-    };
-
-
-
-    struct FieldFirstDerivatives {
-        FirstDerivatives p{};
-        FirstDerivatives q{};
-    };
-
-    struct FieldAndFirstDerivatives {
-        Field f{};
-        FieldFirstDerivatives df{};
-        FieldAndFirstDerivatives (const Field& F, const FieldFirstDerivatives& dF);
-    };
-
-    FieldAndFirstDerivatives f_fromHamiltonianDerivatives (const FirstDerivatives& dh, const SecondDerivatives& d2h)
-    {
-      using boost::math::pow;
-      Field f{};
-      FieldFirstDerivatives df{};
-
-      const auto [v_sq, dv_sq] = v_fromHamiltonianDerivatives(dh,d2h);
-
-      f.p = dh.dp / v_sq;
-      f.q = dh.dq / v_sq;
-
-      const auto pow_2_v_sq = pow<2>(v_sq);
-
-
-      df.p.dp = (v_sq * d2h.dp2 - dh.dp * dv_sq.dp)/pow_2_v_sq;
-      df.p.dq = (v_sq * d2h.dp_dq - dh.dp * dv_sq.dq)/pow_2_v_sq;
-      df.p.dF = (v_sq * d2h.dp_dF - dh.dp * dv_sq.dF)/pow_2_v_sq;
-
-      df.q.dp = (v_sq * d2h.dp_dq - dh.dq * dv_sq.dp)/pow_2_v_sq;
-      df.q.dq = (v_sq * d2h.dq2 - dh.dq * dv_sq.dq)/pow_2_v_sq;
-      df.q.dF = (v_sq * d2h.dq_dF - dh.dq * dv_sq.dF)/pow_2_v_sq;
-
-      return FieldAndFirstDerivatives{f,df};
     }
 }
 #endif //ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP

@@ -185,7 +185,7 @@ int main (int argc, char *argv[])
   const auto phi_harmonic = user_options.phi_harmonic;
 
   const auto init_states =
-      get_state_from_file<DS::UnperturbedExtendedPendulumHamiltonian::StateType>(input_filename, 6);
+      get_state_from_file<DS::UnperturbedExtendedPendulumHamiltonian::StateType>(input_filename, 7);
 
   std::cout << "Init States:\n" << init_states << '\n';
 
