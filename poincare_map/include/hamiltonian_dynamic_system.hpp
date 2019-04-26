@@ -13,7 +13,7 @@
 namespace DS
 {
 
-    using myState = armadillo_state<8>;
+    using myState = armadillo_state<12>;
 
     class UnperturbedExtendedPendulumHamiltonian {
 
@@ -74,15 +74,14 @@ namespace DS
         const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
         const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
 
-
         third_derivs.dp3 = 0;
         third_derivs.dp2_dq = 0;
         third_derivs.dp2_dF = 0;
-        third_derivs.dp_dq2 =0;
-        third_derivs.dp_dq_dF =0;
-        third_derivs.dp_dF2 =0;
+        third_derivs.dp_dq2 = 0;
+        third_derivs.dp_dq_dF = 0;
+        third_derivs.dp_dF2 = 0;
 
-        third_derivs.dq3= -F *sin(q);
+        third_derivs.dq3 = -F * sin(q);
         third_derivs.dq2_dF = cos(q);
         third_derivs.dq_dF2 = 0;
 
@@ -141,8 +140,14 @@ namespace DS
         const auto d3h = h_.third_derivatives(s);
 
         const auto f_and_df = caluclate_translation_field_and_derivatives(dh, d2h, d3h);
-        const auto beta = calculate_beta(p, f_and_df);
-        const auto gamma = calculate_gamma(p, f_and_df, dh, d2h);
+        const auto beta_and_dbeta = calculate_beta(p, f_and_df);
+        const auto&[beta, dbeta] = beta_and_dbeta;
+        const auto gamma_and_dgamma = calculate_gamma(p, f_and_df, dh, d2h, d3h);
+        const auto&[gamma, dgamma] = gamma_and_dgamma;
+        const auto beta1 = calculate_beta1(f_and_df, beta_and_dbeta);
+        const auto gamma1 = calculate_gamma1(f_and_df, gamma_and_dgamma);
+        const auto beta2 = calculate_beta2(f_and_df, beta_and_dbeta, dh, d2h);
+        const auto gamma2 = calculate_gamma2(f_and_df, beta_and_dbeta, dh, d2h);
 
         dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
         dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
@@ -152,6 +157,10 @@ namespace DS
         dsdt[static_cast<unsigned>(CoordinateTag::t)] = 1;
         dsdt[static_cast<unsigned>(CoordinateTag::beta)] = oneFormTimeDerivative(beta, dh);
         dsdt[static_cast<unsigned>(CoordinateTag::gamma)] = oneFormTimeDerivative(gamma, dh);
+        dsdt[static_cast<unsigned>(CoordinateTag::beta1)] = oneFormTimeDerivative(beta1, dh);
+        dsdt[static_cast<unsigned>(CoordinateTag::gamma1)] = oneFormTimeDerivative(gamma1, dh);
+        dsdt[static_cast<unsigned>(CoordinateTag::beta2)] = oneFormTimeDerivative(beta2, dh);
+        dsdt[static_cast<unsigned>(CoordinateTag::gamma2)] = oneFormTimeDerivative(gamma2, dh);
 
       }
     };

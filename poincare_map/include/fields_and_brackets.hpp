@@ -74,8 +74,7 @@ namespace DS
         FirstDerivatives q{};
     };
 
-    struct FieldSecondDerivatives
-    {
+    struct FieldSecondDerivatives {
         SecondDerivatives p{};
         SecondDerivatives q{};
     };
@@ -86,8 +85,7 @@ namespace DS
         Field f{};
         FieldFirstDerivatives df{};
         FieldSecondDerivatives d2f{};
-        FieldAndDerivatives (const Field& f, const FieldFirstDerivatives& df, const FieldSecondDerivatives& d2f);
-        FieldAndDerivatives() = default;
+        FieldAndDerivatives () = default;
     };
 
     struct OneFormFirstDerivatives {
@@ -98,7 +96,7 @@ namespace DS
     struct OneFormAndFirstDerivatives {
         OneForm g{};
         OneFormFirstDerivatives dg{};
-        OneFormAndFirstDerivatives (const OneForm& G, const OneFormFirstDerivatives& dG);
+        OneFormAndFirstDerivatives () = default;
     };
 
     FieldAndDerivatives
@@ -106,12 +104,34 @@ namespace DS
                                                  const SecondDerivatives& d2h,
                                                  const ThirdDerivatives& d3h);
 
-    OneForm calculate_beta (double p, const FieldAndDerivatives& fieldAndDerivatives);
+    OneFormAndFirstDerivatives
+    calculate_beta (double p,
+                    const FieldAndDerivatives& fieldAndDerivatives);
 
-    OneForm calculate_gamma (double p,
-                             const FieldAndDerivatives& fieldAndDerivatives,
-                             const FirstDerivatives& dh,
-                             const SecondDerivatives& d2h);
+    OneFormAndFirstDerivatives
+    calculate_gamma (double p,
+                     const FieldAndDerivatives& fieldAndDerivatives,
+                     const FirstDerivatives& dh,
+                     const SecondDerivatives& d2h,
+                     const ThirdDerivatives& d3h);
+
+    OneForm calculate_beta1 (const FieldAndDerivatives& f_and_df,
+                             const OneFormAndFirstDerivatives& beta_and_dbeta);
+
+    OneForm
+    calculate_beta2 (const FieldAndDerivatives& f_and_df,
+                     const OneFormAndFirstDerivatives& beta_and_dbeta,
+                     const FirstDerivatives& dh,
+                     const SecondDerivatives& d2h);
+
+    OneForm calculate_gamma1 (const FieldAndDerivatives& f_and_df,
+                              const OneFormAndFirstDerivatives& gamma_and_dgamma);
+
+    OneForm
+    calculate_gamma2 (const FieldAndDerivatives& f_and_df,
+                      const OneFormAndFirstDerivatives& gamma_and_dgamma,
+                      const FirstDerivatives& dh,
+                      const SecondDerivatives& d2h);
 
 }
 #endif //ODE_INTEGRATORS_FIELDS_AND_BRACKETS_HPP
