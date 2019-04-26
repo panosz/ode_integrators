@@ -140,7 +140,7 @@ namespace DS
         const auto d2h = h_.second_derivatives(s);
         const auto d3h = h_.third_derivatives(s);
 
-        const auto f_and_df = caluclate_translation_field_and_first_derivatives(dh, d2h, d3h);
+        const auto f_and_df = caluclate_translation_field_and_derivatives(dh, d2h, d3h);
         const auto beta = calculate_beta(p, f_and_df);
         const auto gamma = calculate_gamma(p, f_and_df, dh, d2h);
 

@@ -60,9 +60,10 @@ namespace DS
     };
 
     struct VelocitySqAndDerivatives {
-        double v_Sq;
-        FirstDerivatives dv_Sq;
-        SecondDerivatives d2v_Sq;
+
+        double v_Sq = 0;
+        FirstDerivatives dv_Sq{};
+        SecondDerivatives d2v_Sq{};
     };
 
     VelocitySqAndDerivatives
@@ -73,37 +74,42 @@ namespace DS
         FirstDerivatives q{};
     };
 
-    ///TODO: Calculate Field Second Derivatives
-
-    struct FieldAndFirstDerivatives {
-        Field f{};
-        FieldFirstDerivatives df{};
-        FieldAndFirstDerivatives (const Field& F, const FieldFirstDerivatives& dF);
+    struct FieldSecondDerivatives
+    {
+        SecondDerivatives p{};
+        SecondDerivatives q{};
     };
 
+    ///TODO: Calculate Field Second Derivatives
+
+    struct FieldAndDerivatives {
+        Field f{};
+        FieldFirstDerivatives df{};
+        FieldSecondDerivatives d2f{};
+        FieldAndDerivatives (const Field& f, const FieldFirstDerivatives& df, const FieldSecondDerivatives& d2f);
+        FieldAndDerivatives() = default;
+    };
 
     struct OneFormFirstDerivatives {
         FirstDerivatives p{};
         FirstDerivatives q{};
     };
 
-
-     struct OneFormAndFirstDerivatives {
+    struct OneFormAndFirstDerivatives {
         OneForm g{};
         OneFormFirstDerivatives dg{};
         OneFormAndFirstDerivatives (const OneForm& G, const OneFormFirstDerivatives& dG);
     };
 
+    FieldAndDerivatives
+    caluclate_translation_field_and_derivatives (const FirstDerivatives& dh,
+                                                 const SecondDerivatives& d2h,
+                                                 const ThirdDerivatives& d3h);
 
-    FieldAndFirstDerivatives
-    caluclate_translation_field_and_first_derivatives (const FirstDerivatives& dh,
-                                                       const SecondDerivatives& d2h,
-                                                       const ThirdDerivatives& d3h);
-
-    OneForm calculate_beta (double p, const FieldAndFirstDerivatives& fieldAndFirstDerivatives);
+    OneForm calculate_beta (double p, const FieldAndDerivatives& fieldAndDerivatives);
 
     OneForm calculate_gamma (double p,
-                             const FieldAndFirstDerivatives& fieldAndFirstDerivatives,
+                             const FieldAndDerivatives& fieldAndDerivatives,
                              const FirstDerivatives& dh,
                              const SecondDerivatives& d2h);
 
