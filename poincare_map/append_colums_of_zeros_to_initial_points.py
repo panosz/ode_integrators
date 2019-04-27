@@ -3,7 +3,7 @@ import numpy as np
 
 
 n_extra_columns = 8
-foo_table = pd.read_csv('my_foo.txt',sep=' ')
+foo_table = pd.read_csv('initial_points@energy=0.5.txt',sep=' ')
 
 data = foo_table.values
 
@@ -13,4 +13,4 @@ extra_columns = np.zeros(extra_columns_shape)
 
 new_data = np.append(data,extra_columns,axis=1)
 
-np.savetxt('my_foo_extended.txt',new_data,delimiter=' ')
+np.savetxt('initial_points_extended.txt',new_data,delimiter=' ')

@@ -9,6 +9,7 @@
 #include <cmath>
 #include <stdexcept>
 #include <boost/math/constants/constants.hpp>
+#include <boost/math/special_functions/pow.hpp>
 
 #include "samplingCollections.hpp"
 #include "armadillo_state.hpp"
@@ -17,9 +18,6 @@
 #include "integration_utilities.hpp"
 #include "input_output/hdf5_io.hpp"
 #include "hamiltonian_dynamic_system.hpp"
-
-
-
 
 void print_usage_string ()
 {
@@ -104,14 +102,42 @@ InputOptions parse_input (int argc, char *argv[])
 
 }
 
+struct SpecialIntegrals {
+    double beta = 0;
+    double gamma = 0;
+    double beta1 = 0;
+    double beta2 = 0;
+    double gamma1 = 0;
+    double gamma2 = 0;
+};
+
 class ActionIntegrationResult {
  private:
   double Action_;
   double theta_period_;
   double delta_phi_;
+  SpecialIntegrals integrals_;
+
+  double dT_dJ () const
+  {
+    //\[Omega]/(2 \[Pi]) beta1Integral;
+
+    return integrals_.beta1 / theta_period();
+  }
+
+  double dT_dF () const
+  {
+    using boost::math::double_constants::one_div_two_pi;
+    //dTdF = 1/(2 \[Pi]) beta2Integral + myG*dTdJ;
+    const auto g = g_factor();
+    const auto beta2 = integrals_.beta2;
+
+    return one_div_two_pi * beta2 + g * dT_dJ();
+  }
+
  public:
-  ActionIntegrationResult (double Action, double theta_period, double delta_phi)
-      : Action_{Action}, theta_period_{theta_period}, delta_phi_{delta_phi}
+  ActionIntegrationResult (double Action, double theta_period, double delta_phi, SpecialIntegrals integrals)
+      : Action_{Action}, theta_period_{theta_period}, delta_phi_{delta_phi}, integrals_{integrals}
   { };
   double Action () const noexcept
   {
@@ -143,6 +169,52 @@ class ActionIntegrationResult {
     return delta_phi() / theta_period();
   };
 
+  double domega_dJ () const
+  {
+    using boost::math::double_constants::two_pi;
+    using boost::math::pow;
+    //d\[Omega]dJ = -((2 \[Pi])/T^2) dTdJ;
+    return -two_pi * dT_dJ() / pow<2>(theta_period());
+  }
+
+  double d2K_dJ2 () const
+  {
+    using boost::math::double_constants::two_pi;
+    using boost::math::pow;
+
+    return -pow<3>(omega_theta()) * integrals_.beta1 / pow<2>(two_pi);
+  }
+
+  double one_div_two_pi_gamma() const
+  {
+    using boost::math::double_constants::one_div_two_pi;
+
+    return one_div_two_pi * integrals_.gamma;
+  }
+
+  double domega_dF () const
+  {
+    using boost::math::double_constants::two_pi;
+    using boost::math::pow;
+    //d\[Omega]dF = -((2 \[Pi])/T^2) dTdF;
+
+    return -two_pi / pow<2>(theta_period()) * dT_dF();
+  }
+
+  double d2K_dJdF () const
+  {
+    using boost::math::pow;
+    using boost::math::double_constants::one_div_two_pi;
+
+    const auto beta1 = integrals_.beta1;
+    const auto gamma1 = integrals_.gamma1;
+    const auto G = g_factor();
+    const auto T = theta_period();
+    const auto omega_sq = pow<2>(omega_theta());
+
+    return omega_sq * one_div_two_pi * (gamma1 - G / T * beta1);
+  }
+
 };
 
 template<typename System>
@@ -155,23 +227,25 @@ action_integration (System sys,
   using boost::math::double_constants::one_div_two_pi;
 
   const auto last_point = last_point_on_closed_orbit(sys, first_point, max_time, integrationOptions);
-  ///TODO: Replace raw indices with Coordinate tags
+  const auto delta_point = last_point - first_point;
 
-  const auto J_end = last_point[static_cast<unsigned>(CoordinateTag::J)];
-  const auto J_start = first_point[static_cast<unsigned>(CoordinateTag::J)];
+  SpecialIntegrals integrals{};
 
-  const auto t_end = last_point[static_cast<unsigned>(CoordinateTag::t)];
-  const auto t_start = first_point[static_cast<unsigned>(CoordinateTag::t)];
+  integrals.beta = delta_point[static_cast<unsigned>(CoordinateTag::beta)];
+  integrals.beta1 = delta_point[static_cast<unsigned>(CoordinateTag::beta1)];
+  integrals.beta2 = delta_point[static_cast<unsigned>(CoordinateTag::beta2)];
 
+  integrals.gamma = delta_point[static_cast<unsigned>(CoordinateTag::gamma)];
+  integrals.gamma1 = delta_point[static_cast<unsigned>(CoordinateTag::gamma1)];
+  integrals.gamma2 = delta_point[static_cast<unsigned>(CoordinateTag::gamma2)];
 
-  const auto phi_end = last_point[static_cast<unsigned>(CoordinateTag::phi)];
-  const auto phi_start = first_point[static_cast<unsigned>(CoordinateTag::phi)];
+  const auto delta_J = delta_point[static_cast<unsigned>(CoordinateTag::J)];
+  const auto theta_period = delta_point[static_cast<unsigned>(CoordinateTag::t)];
+  const auto delta_phi = delta_point[static_cast<unsigned>(CoordinateTag::phi)];
 
-  const auto normalized_delta_Action = (J_end - J_start) * one_div_two_pi;
-  const auto theta_period = t_end - t_start;
-  const auto delta_phi = phi_end - phi_start;
+  const auto normalized_delta_Action = delta_J * one_div_two_pi;
 
-  return ActionIntegrationResult{normalized_delta_Action, theta_period, delta_phi};
+  return ActionIntegrationResult{normalized_delta_Action, theta_period, delta_phi, integrals};
 };
 int main (int argc, char *argv[])
 {
@@ -210,13 +284,16 @@ int main (int argc, char *argv[])
   std::cout << "\nEnd Demonstratie integration of single init state\n";
 
   std::cout << "Action integration for all states\n\n";
-  std::cout << "init_F\t\tAction\tomega_theta\tomega_phi\tg_factor\n";
+  std::cout << "init_F\t\tAction\tomega_theta\tomega_phi\tg_factor\tgamma_over_two_pi\tdomega_dJ\td2K_dJ2\tdomega_dF\td2K_dJdF\n";
 
   for (const auto& s:init_states)
     {
       const auto action_result = action_integration(my_sys, s, user_options.integration_time, options);
       std::cout << s[2] << '\t' << action_result.Action() << '\t' << action_result.omega_theta()
-                << '\t' << action_result.omega_phi() << '\t' << action_result.g_factor() << '\n';
+                << '\t' << action_result.omega_phi() << '\t' << action_result.g_factor()<<'\t' << action_result.one_div_two_pi_gamma()
+                << '\t' << action_result.domega_dJ() << '\t' << action_result.d2K_dJ2()
+                << '\t' << action_result.domega_dF()
+                << '\t' << action_result.d2K_dJdF() << '\n';
 
     }
 

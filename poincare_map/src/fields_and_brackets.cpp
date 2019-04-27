@@ -82,10 +82,12 @@ namespace DS
 
       //second derivatives
 
+
       //(vsq^2 Dt[hp, {p, 2}] - 2 vsq Dt[hp, p] Dt[vsq, p] +
-      //                                        2 hp Dt[vsq, p]^2 - hp vsq Dt[vsq, {p, 2}])/vsq^3
+      // 2 hp Dt[vsq, p]^2 - hp vsq Dt[vsq, {p, 2}])/vsq^3
       d2f.p.dp2 = (pow_2_v_sq * d3h.dp3 - 2 * v_sq * d2h.dp2 * dv_sq.dp +
                    2 * dh.dp * pow<2>(dv_sq.dp) - dh.dp * v_sq * d2v_sq.dp2) / pow_3_v_sq;
+
 
       //-(1/(vsq^3))(vsq Dt[hp, q] Dt[vsq, p] + vsq Dt[hp, p] Dt[vsq, q]
       // - 2 hp Dt[vsq, p] Dt[vsq, q]
@@ -108,6 +110,7 @@ namespace DS
       //          + 2 hp Dt[vsq, q]^2 - hp vsq Dt[vsq, {q, 2}])/vsq^3
       d2f.p.dq2 = (pow_2_v_sq * d3h.dp_dq2 - 2 * v_sq * d2h.dp_dq * dv_sq.dq
                    + 2 * dh.dp * pow<2>(dv_sq.dq) - dh.dp * v_sq * d2v_sq.dq2) / pow_3_v_sq;
+
 
       // -(1/(vsq^3))(vsq Dt[hp, q] Dt[vsq, F] + vsq Dt[hp, F] Dt[vsq, q]
       //   - 2 hp Dt[vsq, F] Dt[vsq, q] - vsq^2 Dt[hp, F, q]
@@ -135,7 +138,7 @@ namespace DS
       //   - 2 hq Dt[vsq, p] Dt[vsq, q] - vsq^2 Dt[hq, p, q]
       //   + hq vsq Dt[vsq, p, q])
       d2f.q.dp_dq = -(v_sq * d2h.dq2 * dv_sq.dp + v_sq * d2h.dp_dq * dv_sq.dq
-                      - 2 * dh.dq * dv_sq.dp * dv_sq.dq - pow<2>(v_sq) * d3h.dp_dq2
+                      - 2 * dh.dq * dv_sq.dp * dv_sq.dq - pow_2_v_sq * d3h.dp_dq2
                       + dh.dq * v_sq * d2v_sq.dp_dq) / pow_3_v_sq;
 
 
@@ -146,15 +149,17 @@ namespace DS
                       - 2 * dh.dq * dv_sq.dF * dv_sq.dp - pow_2_v_sq * d3h.dp_dq_dF
                       + dh.dq * v_sq * d2v_sq.dp_dF) / pow_3_v_sq;
 
+
       //(vsq^2 Dt[hq, {q, 2}] - 2 vsq Dt[hq, q] Dt[vsq, q]
       // + 2 hq Dt[vsq, q]^2 - hq vsq Dt[vsq, {q, 2}])/vsq^3
       d2f.q.dq2 = (pow_2_v_sq * d3h.dq3 - 2 * v_sq * d2h.dq2 * dv_sq.dq
                    + 2 * dh.dq * pow<2>(dv_sq.dq) - dh.dq * v_sq * d2v_sq.dq2) / pow_3_v_sq;
 
-      //(1/(vsq^3))(vsq Dt[hq, q] Dt[vsq, F] + vsq Dt[hq, F] Dt[vsq, q]
-      //  - 2 hq Dt[vsq, F] Dt[vsq, q] - vsq^2 Dt[hq, F, q]
-      //  + hq vsq Dt[vsq, F, q])
-      d2f.q.dq_dF = (v_sq * d2h.dq2 * dv_sq.dF + v_sq * d2h.dq_dF * dv_sq.dq
+      //-(1/(vsq^3))(vsq Dt[hq, q] Dt[vsq, F] + vsq Dt[hq, F] Dt[vsq, q] -
+      //   2 hq Dt[vsq, F] Dt[vsq, q] - vsq^2 Dt[hq, F, q] +
+      //   hq vsq Dt[vsq, F, q])
+
+      d2f.q.dq_dF = -(v_sq * d2h.dq2 * dv_sq.dF + v_sq * d2h.dq_dF * dv_sq.dq
                      - 2 * dh.dq * dv_sq.dF * dv_sq.dq - pow_2_v_sq * d3h.dq2_dF
                      + dh.dq * v_sq * d2v_sq.dq_dF) / pow_3_v_sq;
 
@@ -192,7 +197,7 @@ namespace DS
       //-----------------------------------------------------
 
       // 2 \[Pi] (Dt[fq, p] + p Dt[fq, {p, 2}])
-      dbeta.p.dp = two_pi * df.q.dp + p * d2f.p.dp2;
+      dbeta.p.dp = two_pi * (df.q.dp + p * d2f.q.dp2);
 
       //2 p \[Pi] Dt[fq, p, q]
       dbeta.p.dq = two_pi * p * d2f.q.dp_dq;
@@ -243,6 +248,7 @@ namespace DS
       //--------------------------------------------------------
 
 
+
       //Hf p Dt[fq, {p, 2}] + Dt[fq, p] (Hf + 2 p Dt[Hf, p])
       // + fq (Dt[Hf, p] + p Dt[Hf, {p, 2}])
       dgamma.p.dp = dh.dF * p * d2f.q.dp2 + df.q.dp * (dh.dF + 2 * p * d2h.dp_dF)
@@ -272,6 +278,7 @@ namespace DS
       dgamma.q.dq = dh.dF * df.p.dq + dh.dF * p * d2f.q.dq2 + (f.p + 2 * p * df.q.dq) * d2h.dq_dF
                     + f.q * p * d3h.dq2_dF;
 
+
       //Hf Dt[fp, F] + (fp + p Dt[fq, q]) Dt[Hf, F]
       // + p (Dt[fq, F] Dt[Hf, q] + Hf Dt[fq, F, q] + fq Dt[Hf, F, q])
       dgamma.q.dF = dh.dF * df.p.dF + (f.p + p * df.q.dq) * d2h.dF2
@@ -293,10 +300,12 @@ namespace DS
       const auto& dbeta = beta_and_dbeta.dg;
 
 
+
       //\[Beta]p Dt[fp, p] + \[Beta]q Dt[fq, p] + fp Dt[\[Beta]p, p]
       // + fq Dt[\[Beta]p, q]
       beta1.p = beta.p * df.p.dp + beta.q * df.q.dp + f.p * dbeta.p.dp
                 + f.q * dbeta.p.dq;
+
 
       //\[Beta]p Dt[fp, q] + \[Beta]q Dt[fq, q] + fp Dt[\[Beta]q, p]
       // + fq Dt[\[Beta]q, q]
@@ -319,11 +328,12 @@ namespace DS
       const auto& beta = beta_and_dbeta.g;
       const auto& dbeta = beta_and_dbeta.dg;
 
+
       //-Hf \[Beta]p Dt[fp, p] - Hf \[Beta]q Dt[fq, p]
       // - fp \[Beta]p Dt[Hf, p] + Dt[\[Beta]p, F] - fp Hf Dt[\[Beta]p, p]
       // - fq (\[Beta]q Dt[Hf, p] + Hf Dt[\[Beta]p, q])
       beta2.p = -dh.dF * beta.p * df.p.dp - dh.dF * beta.q * df.q.dp
-                - f.p * beta.p * d2h.dp_dF * dbeta.p.dF - f.p * dh.dF * dbeta.p.dp
+                - f.p * beta.p * d2h.dp_dF + dbeta.p.dF - f.p * dh.dF * dbeta.p.dp
                 - f.q * (beta.q * d2h.dp_dF + dh.dF * dbeta.p.dq);
 
       //-Hf \[Beta]p Dt[fp, q] - Hf \[Beta]q Dt[fq, q]
@@ -389,7 +399,7 @@ namespace DS
       // - fq (\[Gamma]q Dt[Hf, q] + Hf Dt[\[Gamma]q, q])
       gamma2.q = -dh.dF * gamma.p * df.p.dq - dh.dF * gamma.q * df.q.dq
                  - f.p * gamma.p * d2h.dq_dF - f.p * dh.dF * dgamma.q.dp
-                 - f.q *(gamma.q * d2h.dq_dF + dh.dF * dgamma.q.dq);
+                 - f.q * (gamma.q * d2h.dq_dF + dh.dF * dgamma.q.dq);
 
       return gamma2;
 
