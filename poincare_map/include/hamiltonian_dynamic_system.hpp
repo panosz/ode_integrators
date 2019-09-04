@@ -141,13 +141,13 @@ namespace DS
 
         const auto f_and_df = caluclate_translation_field_and_derivatives(dh, d2h, d3h);
         const auto beta_and_dbeta = calculate_beta(p, f_and_df);
-        const auto&[beta, dbeta] = beta_and_dbeta;
+        const auto& beta  = beta_and_dbeta.g;
         const auto gamma_and_dgamma = calculate_gamma(p, f_and_df, dh, d2h, d3h);
-        const auto&[gamma, dgamma] = gamma_and_dgamma;
+        const auto& gamma = gamma_and_dgamma.g;
         const auto beta1 = calculate_beta1(f_and_df, beta_and_dbeta);
         const auto gamma1 = calculate_gamma1(f_and_df, gamma_and_dgamma);
         const auto beta2 = calculate_beta2(f_and_df, beta_and_dbeta, dh, d2h);
-        const auto gamma2 = calculate_gamma2(f_and_df, beta_and_dbeta, dh, d2h);
+        const auto gamma2 = calculate_gamma2(f_and_df, gamma_and_dgamma, dh, d2h);
 
         dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
         dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
