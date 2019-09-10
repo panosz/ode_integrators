@@ -15,6 +15,133 @@ namespace DS
 
     using myState = armadillo_state<12>;
 
+    class UnperturbedExtendedOscillatorHamiltonian {
+
+     private:
+      double M_;
+
+     public:
+      using StateType=myState;
+
+      explicit UnperturbedExtendedOscillatorHamiltonian (double M)
+          : M_{M}
+      { };
+
+      double value(const myState& s) const noexcept
+      {
+        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+        return M_ * p * p  + F * q * q;
+      }
+
+      double operator() (const myState& s) const noexcept
+      {
+        return value(s);
+      }
+
+      FirstDerivatives first_derivatives (const myState& s) const noexcept
+      {
+        FirstDerivatives derivs{};
+        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        derivs.dp = 2 * M_ * p;
+        derivs.dq = 2 * F * q;
+        derivs.dF =  q * q;
+        return derivs;
+      }
+
+      SecondDerivatives second_derivatives (const myState& s) const noexcept
+      {
+        SecondDerivatives second_derivs{};
+
+        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        second_derivs.dp2 = 2 * M_;
+        second_derivs.dp_dq = 0;
+        second_derivs.dp_dF = 0;
+        second_derivs.dq2 = 2 * F;
+        second_derivs.dq_dF = 2 * q;
+        second_derivs.dF2 = 0;
+
+        return second_derivs;
+      }
+
+      ThirdDerivatives third_derivatives (const myState& s) const noexcept
+      {
+        ThirdDerivatives third_derivs{};
+
+        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
+        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        third_derivs.dp3 = 0;
+        third_derivs.dp2_dq = 0;
+        third_derivs.dp2_dF = 0;
+        third_derivs.dp_dq2 = 0;
+        third_derivs.dp_dq_dF = 0;
+        third_derivs.dp_dF2 = 0;
+
+        third_derivs.dq3 = 0;
+        third_derivs.dq2_dF = 2;
+        third_derivs.dq_dF2 = 0;
+
+        third_derivs.dF3 = 0;
+
+        return third_derivs;
+      }
+
+      double action(const myState& s) const
+      {
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        return value(s)/(2 * std::sqrt(F));
+      }
+
+      double dKdJ(const myState& s) const noexcept
+      {
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        return 2 * std::sqrt(F);
+      }
+
+      double dKdF(const myState& s) const
+      {
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        return action(s) / std::sqrt(F);
+      }
+
+      double d2KdJ2(const myState& s) const noexcept
+      {
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        return 0;
+      }
+
+      double d2KdJdF(const myState& s) const
+      {
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        return 1 / std::sqrt(F);
+      }
+
+      double d2KdF2(const myState& s) const
+      {
+        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+
+        const auto J = action(s);
+
+        return  - J /(2 * std::pow(F,1.5)) ;
+      }
+
+
+    };
+
     class UnperturbedExtendedPendulumHamiltonian {
 
      private:
@@ -141,7 +268,7 @@ namespace DS
 
         const auto f_and_df = caluclate_translation_field_and_derivatives(dh, d2h, d3h);
         const auto beta_and_dbeta = calculate_beta(p, f_and_df);
-        const auto& beta  = beta_and_dbeta.g;
+        const auto& beta = beta_and_dbeta.g;
         const auto gamma_and_dgamma = calculate_gamma(p, f_and_df, dh, d2h, d3h);
         const auto& gamma = gamma_and_dgamma.g;
         const auto beta1 = calculate_beta1(f_and_df, beta_and_dbeta);

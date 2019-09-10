@@ -129,10 +129,10 @@ class ActionIntegrationResult {
   {
     using boost::math::double_constants::one_div_two_pi;
     //dTdF = 1/(2 \[Pi]) beta2Integral + myG*dTdJ;
-    const auto g = g_factor();
+    const auto G = g_factor();
     const auto beta2 = integrals_.beta2;
 
-    return one_div_two_pi * beta2 + g * dT_dJ();
+    return one_div_two_pi * beta2 + G * dT_dJ();
   }
 
  public:
@@ -185,7 +185,7 @@ class ActionIntegrationResult {
     return -pow<3>(omega_theta()) * integrals_.beta1 / pow<2>(two_pi);
   }
 
-  double one_div_two_pi_gamma() const
+  double one_div_two_pi_gamma () const
   {
     using boost::math::double_constants::one_div_two_pi;
 
@@ -213,6 +213,17 @@ class ActionIntegrationResult {
     const auto omega_sq = pow<2>(omega_theta());
 
     return omega_sq * one_div_two_pi * (gamma1 - G / T * beta1);
+  }
+
+  double d2K_dF2 () const
+  {
+    using boost::math::pow;
+    const auto G = g_factor();
+    const auto T = theta_period();
+    const auto beta2 = integrals_.beta2;
+    const auto gamma2 = integrals_.gamma2;
+
+    return G * d2K_dJdF() + gamma2 / T - G / pow<2>(T) * beta2;
   }
 
 };
@@ -265,7 +276,8 @@ int main (int argc, char *argv[])
 
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
 
-  auto my_sys = DS::makeUnperturbedDynamicSystem(DS::UnperturbedExtendedPendulumHamiltonian(1.0));
+  const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(1.0);
+  auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
 
   std::cout << "Demonstrate integration of single init state\n";
   const auto init_state = init_states[10];
@@ -284,16 +296,43 @@ int main (int argc, char *argv[])
   std::cout << "\nEnd Demonstratie integration of single init state\n";
 
   std::cout << "Action integration for all states\n\n";
-  std::cout << "init_F\t\tAction\tomega_theta\tomega_phi\tg_factor\tgamma_over_two_pi\tdomega_dJ\td2K_dJ2\tdomega_dF\td2K_dJdF\n";
+  std::cout << "init_F" << "\t\t"
+            << "Action" << "\t\t"
+            << "omega_theta" << "\t\t"
+            << "omega_phi" << "\t\t"
+            << "omega_phi_analytic" << "\t\t"
+            << "g_factor" << "\t\t"
+            << "gamma_over_two_pi" << "\t\t"
+            << "d2K_dJ2" << "\t\t"
+            << "domega_dJ_analytic" << "\t\t"
+            << "domega_dF" << "\t\t"
+            << "d2K_dJdF" << "\t\t"
+            << " d2K_dJdF_analytic" << "\t\t"
+            << "d2K_dF2" << "\t\t"
+            << " d2K_dF2_analytic" << "\n";
 
   for (const auto& s:init_states)
     {
+      const auto d2KdJ2_analytic = myHam.d2KdJ2(s);
+      const auto d2KdJdF_analytic = myHam.d2KdJdF(s);
+      const auto omega_phi_analytic = myHam.dKdF(s);
+      const auto d2KdF2_analytic = myHam.d2KdF2(s);
+
       const auto action_result = action_integration(my_sys, s, user_options.integration_time, options);
-      std::cout << s[2] << '\t' << action_result.Action() << '\t' << action_result.omega_theta()
-                << '\t' << action_result.omega_phi() << '\t' << action_result.g_factor()<<'\t' << action_result.one_div_two_pi_gamma()
-                << '\t' << action_result.domega_dJ() << '\t' << action_result.d2K_dJ2()
-                << '\t' << action_result.domega_dF()
-                << '\t' << action_result.d2K_dJdF() << '\n';
+      std::cout << s[2] << "\t\t"
+                << action_result.Action() << "\t\t"
+                << action_result.omega_theta() << "\t\t"
+                << action_result.omega_phi() << "\t\t"
+                << omega_phi_analytic << "\t\t"
+                << action_result.g_factor() << "\t\t"
+                << action_result.one_div_two_pi_gamma() << "\t\t"
+                << action_result.d2K_dJ2() << "\t\t"
+                << d2KdJ2_analytic << "\t\t"
+                << action_result.domega_dF() << "\t\t"
+                << action_result.d2K_dJdF() << "\t\t"
+                << d2KdJdF_analytic << "\t\t"
+                << action_result.d2K_dF2() << "\t\t"
+                << d2KdF2_analytic << '\n';
 
     }
 
