@@ -57,7 +57,6 @@ namespace DS
       {
         SecondDerivatives second_derivs{};
 
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
         const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
         const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
 
@@ -71,13 +70,10 @@ namespace DS
         return second_derivs;
       }
 
-      ThirdDerivatives third_derivatives (const myState& s) const noexcept
+      ThirdDerivatives third_derivatives (const myState& /*s*/) const noexcept
       {
         ThirdDerivatives third_derivs{};
 
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
 
         third_derivs.dp3 = 0;
         third_derivs.dp2_dq = 0;
@@ -116,10 +112,8 @@ namespace DS
         return action(s) / std::sqrt(F);
       }
 
-      double d2KdJ2(const myState& s) const noexcept
+      double d2KdJ2(const myState& /*s*/) const noexcept
       {
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
         return 0;
       }
 
@@ -179,7 +173,6 @@ namespace DS
       {
         SecondDerivatives second_derivs{};
 
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
         const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
         const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
 
@@ -197,7 +190,6 @@ namespace DS
       {
         ThirdDerivatives third_derivs{};
 
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
         const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
         const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
 
