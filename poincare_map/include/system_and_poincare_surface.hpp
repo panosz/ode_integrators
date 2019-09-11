@@ -7,7 +7,10 @@
 
 #include "myUtilities/wrap.hpp"
 
-///TODO: Expand and Rename Coordinate Tags
+const unsigned PHASE_SPACE_VARIABLES = 4;
+const unsigned PATH_INTEGRALS = 8;
+const unsigned EXTENDED_SPACE_VARIABLES = PHASE_SPACE_VARIABLES + PATH_INTEGRALS;
+
 enum class CoordinateTag : unsigned {
   p = 0,
   q = 1,

@@ -136,6 +136,17 @@ action_integration (System sys,
   return ActionIntegrationResult{normalized_delta_Action, theta_period, delta_phi, integrals};
 }
 
+template<typename System>
+ActionIntegrationResult
+action_integration (System sys,
+                    const typename DS::PhaseSpaceState & first_point,
+                    double max_time,
+                    IntegrationOptions integrationOptions)
+{
+  return action_integration(sys, DS::phase_to_extended_space_state(first_point), max_time, integrationOptions);
+}
+
+
 int main (int argc, char *argv[])
 {
 
@@ -144,7 +155,7 @@ int main (int argc, char *argv[])
   const auto input_filename = user_options.input_filename;
 
   const auto init_states =
-      get_state_from_file<DS::UnperturbedExtendedPendulumHamiltonian::StateType>(input_filename, 12);
+      get_state_from_file<DS::PhaseSpaceState>(input_filename, 4);
 
   std::cout << "Init States:\n" << init_states << '\n';
 
@@ -154,7 +165,7 @@ int main (int argc, char *argv[])
   auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
 
   std::cout << "Demonstrate integration of single init state\n";
-  const auto init_state = init_states[10];
+  const auto init_state = DS::phase_to_extended_space_state(init_states[10]);
   std::cout << "init_state = " << init_state;
 
   const auto closed_orbit = integrate_along_closed_orbit(my_sys, init_state, user_options.integration_time, options);

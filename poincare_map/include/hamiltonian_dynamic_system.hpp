@@ -13,7 +13,21 @@
 namespace DS
 {
 
-    using myState = armadillo_state<12>;
+    using PhaseSpaceState = armadillo_state<PHASE_SPACE_VARIABLES>;
+    using ExtendedSpaceState = armadillo_state<EXTENDED_SPACE_VARIABLES>;
+
+    ExtendedSpaceState phase_to_extended_space_state(const PhaseSpaceState &pss)
+    {
+      ExtendedSpaceState ess{};
+      ess.zeros();
+
+      ess[static_cast<unsigned>(CoordinateTag::p)] = pss[static_cast<unsigned>(CoordinateTag::p)] ;
+      ess[static_cast<unsigned>(CoordinateTag::q)] = pss[static_cast<unsigned>(CoordinateTag::q)] ;
+      ess[static_cast<unsigned>(CoordinateTag::F)] = pss[static_cast<unsigned>(CoordinateTag::F)] ;
+      ess[static_cast<unsigned>(CoordinateTag::phi)] = pss[static_cast<unsigned>(CoordinateTag::phi)] ;
+
+      return ess;
+    }
 
     class UnperturbedExtendedOscillatorHamiltonian {
 
@@ -21,13 +35,14 @@ namespace DS
       double M_;
 
      public:
-      using StateType=myState;
+      using StateType=ExtendedSpaceState;
 
       explicit UnperturbedExtendedOscillatorHamiltonian (double M)
           : M_{M}
       { };
 
-      double value(const myState& s) const noexcept
+      template<typename ST>
+      double value(const ST& s) const noexcept
       {
         const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
         const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
@@ -35,12 +50,14 @@ namespace DS
         return M_ * p * p  + F * q * q;
       }
 
-      double operator() (const myState& s) const noexcept
+      template<typename ST>
+      double operator() (const ST& s) const noexcept
       {
         return value(s);
       }
 
-      FirstDerivatives first_derivatives (const myState& s) const noexcept
+      template<typename ST>
+      FirstDerivatives first_derivatives (const ST& s) const noexcept
       {
         FirstDerivatives derivs{};
         const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
@@ -53,7 +70,8 @@ namespace DS
         return derivs;
       }
 
-      SecondDerivatives second_derivatives (const myState& s) const noexcept
+      template<typename ST>
+      SecondDerivatives second_derivatives (const ST& s) const noexcept
       {
         SecondDerivatives second_derivs{};
 
@@ -70,7 +88,8 @@ namespace DS
         return second_derivs;
       }
 
-      ThirdDerivatives third_derivatives (const myState& /*s*/) const noexcept
+      template<typename ST>
+      ThirdDerivatives third_derivatives (const ST& /*s*/) const noexcept
       {
         ThirdDerivatives third_derivs{};
 
@@ -91,47 +110,17 @@ namespace DS
         return third_derivs;
       }
 
-      double action(const myState& s) const
-      {
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+      double action(const PhaseSpaceState& s) const;
 
-        return value(s)/(2 * std::sqrt(F));
-      }
+      double dKdJ(const PhaseSpaceState& s) const noexcept;
 
-      double dKdJ(const myState& s) const noexcept
-      {
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+      double dKdF(const PhaseSpaceState& s) const;
 
-        return 2 * std::sqrt(F);
-      }
+      double d2KdJ2(const PhaseSpaceState& /*s*/) const noexcept;
 
-      double dKdF(const myState& s) const
-      {
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+      double d2KdJdF(const PhaseSpaceState& s) const;
 
-        return action(s) / std::sqrt(F);
-      }
-
-      double d2KdJ2(const myState& /*s*/) const noexcept
-      {
-        return 0;
-      }
-
-      double d2KdJdF(const myState& s) const
-      {
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        return 1 / std::sqrt(F);
-      }
-
-      double d2KdF2(const myState& s) const
-      {
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        const auto J = action(s);
-
-        return  - J /(2 * std::pow(F,1.5)) ;
-      }
+      double d2KdF2(const PhaseSpaceState& s) const;
 
 
     };
@@ -142,13 +131,13 @@ namespace DS
       double M_;
 
      public:
-      using StateType=myState;
+      using StateType=PhaseSpaceState;
 
       explicit UnperturbedExtendedPendulumHamiltonian (double M)
           : M_{M}
       { };
 
-      double operator() (const myState& s) const
+      double operator() (const StateType& s) const
       {
         const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
         const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
@@ -156,7 +145,7 @@ namespace DS
         return M_ * p * p / 2 - F * cos(q);
       }
 
-      FirstDerivatives first_derivatives (const myState& s) const noexcept
+      FirstDerivatives first_derivatives (const StateType& s) const noexcept
       {
         FirstDerivatives derivs{};
         const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
@@ -169,7 +158,7 @@ namespace DS
         return derivs;
       }
 
-      SecondDerivatives second_derivatives (const myState& s) const noexcept
+      SecondDerivatives second_derivatives (const StateType& s) const noexcept
       {
         SecondDerivatives second_derivs{};
 
@@ -186,7 +175,7 @@ namespace DS
         return second_derivs;
       }
 
-      ThirdDerivatives third_derivatives (const myState& s) const noexcept
+      ThirdDerivatives third_derivatives (const StateType& s) const noexcept
       {
         ThirdDerivatives third_derivs{};
 
@@ -215,7 +204,7 @@ namespace DS
     class UnperturbedDynamicSystem {
 
      public:
-      using StateType = typename UnperturbedHamiltonian::StateType;
+      using StateType = ExtendedSpaceState;
 
      private:
       UnperturbedHamiltonian h_;
