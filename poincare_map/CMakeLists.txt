@@ -57,9 +57,9 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTA
 
 
 
-add_executable(test_G_H_O test_G_H_O.cpp )
-target_link_libraries(test_G_H_O PUBLIC poincare_map)
-target_compile_options(test_G_H_O PRIVATE
+add_executable(test_E_H_O test_E_H_O.cpp)
+target_link_libraries(test_E_H_O PUBLIC poincare_map)
+target_compile_options(test_E_H_O PRIVATE
         -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
         -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
         -Wconversion -Wsign-conversion -Wmisleading-indentation

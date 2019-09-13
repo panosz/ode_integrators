@@ -93,9 +93,18 @@ InputOptions parse_arguments (int argc, char **argv)
 
 }
 
+bool double_near (double x, double y, double abs_tolerance)
+{
+  return std::abs(x - y) < abs_tolerance;
+}
 
 int main (int argc, char *argv[])
 {
+
+  std::cout << " TEST EXTENDED HARMONIC OSCILLATOR\n"
+            << "----------------------------------------\n"
+            << "This program is used to test the path integral calculation of the Hessian of the Hamiltonian in action space\n"
+            << "The Hamiltonian used is that of the Extended Harmonic Oscillator\n";
 
   const auto user_options = parse_arguments(argc, argv);
 
