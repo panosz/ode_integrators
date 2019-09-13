@@ -21,9 +21,10 @@
 #include "action_integration_result.hpp"
 #include "action_integration.hpp"
 
-void print_usage_string ()
+void print_usage_string (const std::string& program_name)
 {
-  const auto usage_string = "usage: poincare_map input_filename integration_time perturpbation_amplitude q_harmonic phi_harmonic";
+  const auto usage_string =
+      "usage: " + program_name + " input_filename integration_time perturpbation_amplitude q_harmonic phi_harmonic";
   std::cout << usage_string << std::endl;
 }
 
@@ -73,7 +74,7 @@ InputOptions parse_input (int argc, char *argv[])
   InputOptions inputOptions{};
 
   if (argc < 6)
-    print_usage_string();
+    print_usage_string(argv[0]);
 
   switch (argc)
     {
@@ -103,11 +104,6 @@ InputOptions parse_input (int argc, char *argv[])
   return inputOptions;
 
 }
-
-
-
-
-
 
 int main (int argc, char *argv[])
 {
