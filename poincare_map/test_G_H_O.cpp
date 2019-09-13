@@ -37,7 +37,7 @@ struct InputOptions {
 
 };
 
-double get_double_from_input (const std::string& input, const std::string& parameter)
+double get_double_from_argument (const std::string& input, const std::string& parameter)
 {
   double out;
   try
@@ -53,7 +53,7 @@ double get_double_from_input (const std::string& input, const std::string& param
   return out;
 }
 
-int get_int_from_input (const std::string& input, const std::string& parameter)
+int get_int_from_argument (const std::string& input, const std::string& parameter)
 {
   int out;
   try
@@ -69,7 +69,7 @@ int get_int_from_input (const std::string& input, const std::string& parameter)
   return out;
 }
 
-InputOptions parse_input (int argc, char *argv[])
+InputOptions parse_arguments (int argc, char **argv)
 {
   InputOptions inputOptions{};
 
@@ -85,21 +85,21 @@ InputOptions parse_input (int argc, char *argv[])
     throw std::runtime_error("integration time must be specified");
 
   case 3:
-    throw std::runtime_error("perturbation_amplitude must be specivied");
+    throw std::runtime_error("perturbation_amplitude must be specified");
 
   case 4:
-    throw std::runtime_error("q_harmonic must be specivied");
+    throw std::runtime_error("q_harmonic must be specified");
 
   case 5:
-    throw std::runtime_error("phi_harmonic must be specivied");
+    throw std::runtime_error("phi_harmonic must be specified");
     }
 
   inputOptions.input_filename = argv[1];
 
-  inputOptions.integration_time = get_double_from_input(argv[2], "integration time");
-  inputOptions.perturbation_amplitude = get_double_from_input(argv[3], "perturbation amplitude");
-  inputOptions.q_harmonic = get_int_from_input(argv[4], "q_harmonic");
-  inputOptions.phi_harmonic = get_int_from_input(argv[5], "phi_harmonic");
+  inputOptions.integration_time = get_double_from_argument(argv[2], "integration time");
+  inputOptions.perturbation_amplitude = get_double_from_argument(argv[3], "perturbation amplitude");
+  inputOptions.q_harmonic = get_int_from_argument(argv[4], "q_harmonic");
+  inputOptions.phi_harmonic = get_int_from_argument(argv[5], "phi_harmonic");
 
   return inputOptions;
 
@@ -108,7 +108,7 @@ InputOptions parse_input (int argc, char *argv[])
 int main (int argc, char *argv[])
 {
 
-  const auto user_options = parse_input(argc, argv);
+  const auto user_options = parse_arguments(argc, argv);
 
   const auto input_filename = user_options.input_filename;
 
