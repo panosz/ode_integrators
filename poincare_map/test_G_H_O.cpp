@@ -24,16 +24,16 @@
 void print_usage_string (const std::string& program_name)
 {
   const auto usage_string =
-      "usage: " + program_name + " input_filename integration_time perturpbation_amplitude q_harmonic phi_harmonic";
+      "usage: " + program_name + " input_filename integration_time";
   std::cout << usage_string << std::endl;
 }
 
 struct InputOptions {
     char *input_filename;
     double integration_time;
-    double perturbation_amplitude;
-    int q_harmonic;
-    int phi_harmonic;
+//    double perturbation_amplitude;
+//    int q_harmonic;
+//    int phi_harmonic;
 
 };
 
@@ -73,7 +73,7 @@ InputOptions parse_arguments (int argc, char **argv)
 {
   InputOptions inputOptions{};
 
-  if (argc < 6)
+  if (argc < 3)
     print_usage_string(argv[0]);
 
   switch (argc)
@@ -83,27 +83,16 @@ InputOptions parse_arguments (int argc, char **argv)
 
   case 2:
     throw std::runtime_error("integration time must be specified");
-
-  case 3:
-    throw std::runtime_error("perturbation_amplitude must be specified");
-
-  case 4:
-    throw std::runtime_error("q_harmonic must be specified");
-
-  case 5:
-    throw std::runtime_error("phi_harmonic must be specified");
     }
 
   inputOptions.input_filename = argv[1];
 
   inputOptions.integration_time = get_double_from_argument(argv[2], "integration time");
-  inputOptions.perturbation_amplitude = get_double_from_argument(argv[3], "perturbation amplitude");
-  inputOptions.q_harmonic = get_int_from_argument(argv[4], "q_harmonic");
-  inputOptions.phi_harmonic = get_int_from_argument(argv[5], "phi_harmonic");
 
   return inputOptions;
 
 }
+
 
 int main (int argc, char *argv[])
 {
