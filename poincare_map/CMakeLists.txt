@@ -75,3 +75,5 @@ target_compile_options(test_E_H_O PRIVATE
         -march=native
         >
         )
+
+      add_subdirectory(bindings)
