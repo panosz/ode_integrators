@@ -1,8 +1,11 @@
-find_package(Boost REQUIRED)
+find_package (Python3 COMPONENTS Development)
+set(Boost_ROOT $ENV{HOME}/local/boost_1_69_0)
+find_package(Boost REQUIRED python37 numpy37 system)
 
 find_package(myUtilities REQUIRED)
+#find armadillo
 find_package(Armadillo REQUIRED)
-
+include_directories(SYSTEM ${ARMADILLO_INCLUDE_DIRS} )
 
 configure_file ( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp")
