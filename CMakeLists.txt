@@ -4,7 +4,7 @@ project(ode_integrators VERSION 0.1)
 set(CMAKE_CXX_STANDARD 17)
 
 
-add_subdirectory(stand_alone_odeint_examples)
+# add_subdirectory(stand_alone_odeint_examples)
 
 
 
