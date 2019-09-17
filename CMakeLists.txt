@@ -14,6 +14,7 @@ set(CMAKE_CXX_STANDARD 17)
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/poincare_map)
 
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 add_subdirectory(poincare_map)
 
