@@ -126,7 +126,8 @@ namespace DS
           : M_{M}
       { };
 
-      double operator() (const StateType& s) const
+      template<typename ST>
+      double value(const ST& s) const noexcept
       {
         const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
         const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
@@ -134,7 +135,14 @@ namespace DS
         return M_ * p * p / 2 - F * cos(q);
       }
 
-      FirstDerivatives first_derivatives (const StateType& s) const noexcept
+      template<typename ST>
+      double operator() (const ST& s) const
+      {
+        return value(s);
+      }
+
+      template<typename ST>
+      FirstDerivatives first_derivatives (const ST& s) const noexcept
       {
         FirstDerivatives derivs{};
         const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
@@ -147,7 +155,8 @@ namespace DS
         return derivs;
       }
 
-      SecondDerivatives second_derivatives (const StateType& s) const noexcept
+      template<typename ST>
+      SecondDerivatives second_derivatives (const ST& s) const noexcept
       {
         SecondDerivatives second_derivs{};
 
@@ -164,7 +173,8 @@ namespace DS
         return second_derivs;
       }
 
-      ThirdDerivatives third_derivatives (const StateType& s) const noexcept
+      template<typename ST>
+      ThirdDerivatives third_derivatives (const ST& s) const noexcept
       {
         ThirdDerivatives third_derivs{};
 
