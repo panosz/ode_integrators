@@ -1,5 +1,7 @@
-import action_integration_ext as ai
 import numpy as np
+import numpy.testing as nt
+import pytest
+import action_integration_ext as ai
 
 _P_COORDINATE = 0
 _Q_COORDINATE = 1
@@ -58,9 +60,24 @@ class AnalyticHO(object):
                          [self.d2KdJdF(s), self.d2KdF2(s)]])
 
 
-if __name__ == "__main__":
-    s = np.array([4.1, 3, 2, 4])
+list_of_points = [np.array(x) for x in [[4.1, 3.0, 1, 0],
+                                        [4.1, 3.1, 2, 0],
+                                        [4.1, 3.2, 3, 0],
+                                        [4.1, 3.3, 4, 0],
+                                        [4.1, 3.4, 5, 0],
+                                        [4.1, 3.5, 6, 0],
+                                        [4.1, 3.6, 7, 0],
+                                        [4.1, 3.7, 8, 0],
+                                        [4.1, 3.8, 9, 0],
+                                        [4.1, 3.9, 10, 0],
+                                        ]]
+
+
+@pytest.mark.parametrize("s", list_of_points)
+def test_action_integration(s):
     mass = 1.0
     anal_ho = AnalyticHO(mass)
     numer_ho = ai.integrate_E_H_O(s, mass=mass)
-    print(anal_ho.hessian(s) - numer_ho.hessian())
+    result = numer_ho.hessian()
+    desired = anal_ho.hessian(s)
+    nt.assert_allclose(result, desired, atol=1e-10, rtol=1e-10)
