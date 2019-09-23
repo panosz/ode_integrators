@@ -1,0 +1,6 @@
+#ifndef ACTION_INTEGRATION_RESULT_DECORATOR
+#define ACTION_INTEGRATION_RESULT_DECORATOR
+#include "action_integration_result.hpp"
+
+
+#endif /* ifndef ACTION_INTEGRATION_RESULT_DECORATOR */

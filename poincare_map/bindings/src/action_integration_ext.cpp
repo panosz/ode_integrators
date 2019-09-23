@@ -2,11 +2,64 @@
 #include <boost/python/numpy.hpp>
 #include <string>
 #include "action_integration_result.hpp"
+#include "action_integration.hpp"
+#include "hamiltonian_dynamic_system.hpp"
 
 namespace p = boost::python;
 namespace np = boost::python::numpy;
 
 namespace { // Avoid cluttering the global namespace.
+
+  DS::PhaseSpaceState ndarray_to_phase_space_state(const np::ndarray& ndar)
+  {
+
+    if (ndar.get_dtype() != np::dtype::get_builtin<double>()) {
+        PyErr_SetString(PyExc_TypeError, "Incorrect array data type");
+        p::throw_error_already_set();
+    }
+
+    if (ndar.get_nd() != 1) {
+        PyErr_SetString(PyExc_TypeError, "Incorrect number of array dimensions");
+        p::throw_error_already_set();
+    }
+
+    if (ndar.shape(0) != 4) {
+        PyErr_SetString(PyExc_TypeError, "Incorrect length input");
+        p::throw_error_already_set();
+    }
+
+  auto s = DS::PhaseSpaceState{};
+  s[0] = p::extract<double>(ndar[0]);
+  s[1] = p::extract<double>(ndar[1]);
+  s[2] = p::extract<double>(ndar[2]);
+  s[3] = p::extract<double>(ndar[3]);
+  return s;
+  }
+
+  ActionIntegrationResult integrate_E_H_O_impl(const np::ndarray& ndar, double mass, double integration_time)
+  {
+
+  const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
+  const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(mass);
+  auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
+  const auto s = ndarray_to_phase_space_state(ndar);
+
+  return action_integration(my_sys, s, integration_time, options);
+
+  }
+
+
+  ActionIntegrationResult integrate_E_Pendulum_impl(const np::ndarray& ndar, double mass, double integration_time)
+  {
+
+  const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
+  const auto myHam = DS::UnperturbedExtendedPendulumHamiltonian(mass);
+  auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
+  const auto s = ndarray_to_phase_space_state(ndar);
+
+  return action_integration(my_sys, s, integration_time, options);
+  }
+
   std::array<double,3> args_to_array(double x, double y, double z)
   {
 
@@ -61,34 +114,8 @@ namespace { // Avoid cluttering the global namespace.
     return args_to_2_by_2_array(xx,xy,xy,yy);
   }
 
-  class array_builder
-  {
-    public:
-      array_builder() = default;
-      np::ndarray to_array(double x, double y, double z) const
-      {
-        return args_to_nd_array(x, y, z);
-      }
-  };
 
 
-  // A friendly class.
-  class MyPoint
-  {
-  public:
-    double x_;
-    double y_;
-    MyPoint (double x, double y):
-      x_{x},y_{y}
-    {};
-  };
-
-  //A friendly class factory.
-
-  MyPoint make_myPoint(double x, double y)
-  {
-    return MyPoint(x,y);
-  }
 }
 
 
@@ -129,30 +156,30 @@ class ActionIntegrationResultDecorator
     np::ndarray hessian() const
     {return args_to_Hessian(air_.d2K_dJ2(), air_.d2K_dJdF(), air_.d2K_dF2());}
 
-};
 
+};
 
 ActionIntegrationResultDecorator make_action_integration_result()
 {
   return ActionIntegrationResultDecorator(1, 2, 3, SpecialIntegrals());
 }
 
+ActionIntegrationResultDecorator integrate_E_H_O(const np::ndarray& ndar, double mass, double integration_time)
+{
+  return integrate_E_H_O_impl(ndar, mass, integration_time);
+}
 
-BOOST_PYTHON_MODULE(hello_ext)
+ActionIntegrationResultDecorator integrate_E_Pendulum(const np::ndarray& ndar, double mass, double integration_time)
+{
+  return integrate_E_Pendulum_impl(ndar, mass, integration_time);
+}
+
+BOOST_PYTHON_MODULE(action_integration_ext)
 {
   np::initialize();  // have to put this in any module that uses Boost.NumPy
   p::def("args_to_array", args_to_nd_array);
   p::def("args_to_Hessian", args_to_Hessian);
 
-  p::class_<array_builder>("array_builder")
-    // Add a regular member function.
-    .def("to_array", &array_builder::to_array);
-
-  p::class_<MyPoint>("MyPythonPoint",p::init<double,double>())
-    .def_readwrite("x",&MyPoint::x_)
-    .def_readwrite("y",&MyPoint::y_) ;
-  //exposed factory functions, are python factory functions for the exposed python class
-  p::def("make_myPoint",make_myPoint);
 
   p::class_<ActionIntegrationResultDecorator>("ActionIntegrationResult", p::init<double,double,double,SpecialIntegrals>())
     .def("Action",&ActionIntegrationResultDecorator::Action)
@@ -170,5 +197,7 @@ BOOST_PYTHON_MODULE(hello_ext)
     .def("hessian",&ActionIntegrationResultDecorator::hessian);
 
   p::def("make_action_integration_result",make_action_integration_result);
+  p::def("integrate_E_H_O",integrate_E_H_O,(p::arg("s"),p::arg("mass"),p::arg("integration_time")=1000));
+  p::def("integrate_E_Pendulum",integrate_E_Pendulum,(p::arg("s"),p::arg("mass"),p::arg("integration_time")=1000));
 }
 
