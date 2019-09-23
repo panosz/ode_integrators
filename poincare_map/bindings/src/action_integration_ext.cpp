@@ -159,10 +159,6 @@ class ActionIntegrationResultDecorator
 
 };
 
-ActionIntegrationResultDecorator make_action_integration_result()
-{
-  return ActionIntegrationResultDecorator(1, 2, 3, SpecialIntegrals());
-}
 
 ActionIntegrationResultDecorator integrate_E_H_O(const np::ndarray& ndar, double mass, double integration_time)
 {
@@ -196,7 +192,6 @@ BOOST_PYTHON_MODULE(action_integration_ext)
     .def("d2K_dF2",&ActionIntegrationResultDecorator::d2K_dF2)
     .def("hessian",&ActionIntegrationResultDecorator::hessian);
 
-  p::def("make_action_integration_result",make_action_integration_result);
   p::def("integrate_E_H_O",integrate_E_H_O,(p::arg("s"),p::arg("mass"),p::arg("integration_time")=1000));
   p::def("integrate_E_Pendulum",integrate_E_Pendulum,(p::arg("s"),p::arg("mass"),p::arg("integration_time")=1000));
 }
