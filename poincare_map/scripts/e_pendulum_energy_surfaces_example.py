@@ -1,7 +1,7 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import host_subplot, make_axes_locatable
+from mpl_toolkits.axes_grid1 import host_subplot
 from panos_utilities import coprimes
 from panos_utilities import roots as panos_roots
 from fractions import Fraction
@@ -67,7 +67,23 @@ def resonances_on_energy_surface(energy, ratio_set, f_window, n_samples=15):
     valid_crossings = (crossing for crossing in crossings
                        if crossing.solutions)
 
-    return pd.DataFrame(valid_crossings, columns=['ratio', 'F_list'])
+    output_list = []
+
+    for vc in valid_crossings:
+        level = vc.level
+        f_values = vc.solutions
+        init_points = [points_on_energy_surface(f=f, energy=energy)
+                       for f in f_values]
+        action_integrals = [ai.integrate_E_Pendulum(s, mass=M)
+                            for s in init_points]
+
+        output_list.append((level, f_values, init_points, action_integrals))
+
+    return pd.DataFrame(output_list,
+                        columns=['ratio',
+                                 'F_list',
+                                 'init_points',
+                                 'action_integrals'])
 
 
 def relative_x(ax, x):
