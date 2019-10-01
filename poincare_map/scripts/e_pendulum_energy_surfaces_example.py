@@ -70,15 +70,55 @@ def resonances_on_energy_surface(energy, ratio_set, f_window, n_samples=15):
     return pd.DataFrame(valid_crossings, columns=['ratio', 'F_list'])
 
 
+def relative_x(ax, x):
+    '''
+        calculates the relative value of x with respect to the ax axes
+    '''
+    x0, x1 = ax.get_xlim()
+    return (x - x0) / (x1 - x0)
+
+
+def relative_y(ax, y):
+    '''
+        calculates the relative value of y with respect to the ax axes
+    '''
+    y0, y1 = ax.get_ylim()
+    return (y - y0) / (y1 - y0)
+
+
+def plot_single_resonance_level(ax,
+                                resonance_ratio,
+                                sorted_resonance_positions,
+                                cut_line_style,
+                                resonance_position_style):
+    '''
+        plots the positions of a resonance ratio
+    '''
+    resonance_position_max = sorted_resonance_positions[-1]
+    relative_y_max = relative_y(ax, resonance_position_max)
+    relative_x_min = relative_x(ax, resonance_ratio)
+
+    ax.axvline(resonance_ratio,
+               ymax=relative_y_max,
+               **cut_line_style)
+
+    for position in sorted_resonance_positions:
+        ax.axhline(position,
+                   xmin=relative_x_min,
+                   **cut_line_style)
+
+    ax.plot([resonance_ratio] * len(sorted_resonance_positions),
+            sorted_resonance_positions, **resonance_position_style)
+
+
 def plot_resonances(ax, resonance_data):
-    def relative_x(x):
-        x0, x1 = ax.get_xlim()
-        return (x - x0) / (x1 - x0)
+    resonance_line_style = {'color': 'black',
+                            'alpha': 0.5,
+                            'linestyle': '--'}
 
-    def relative_y(y):
-        y0, y1 = ax.get_ylim()
-        return (y - y0) / (y1 - y0)
-
+    resonance_position_style = {'linestyle': '',
+                                'marker': 'x',
+                                'color': _colors[1]}
     x_ticks = []
     y_ticks = []
     for _, resonance_row in resonance_data.iterrows():
@@ -88,19 +128,11 @@ def plot_resonances(ax, resonance_data):
         x_ticks.append(resonance_ratio)
         y_ticks += resonance_positions
 
-        resonance_position_max = resonance_positions[-1]
-        relative_y_max = relative_y(resonance_position_max)
-
-        ax.axvline(resonance_ratio,
-                   color='black',
-                   alpha=0.5,
-                   ymax=relative_y_max,
-                   linestyle='--')
-
-        for position in resonance_positions:
-            ax.axhline(position, color='black', alpha=0.5, xmin=relative_x(resonance_ratio), linestyle='--')
-
-        ax.plot([resonance_ratio] * len(resonance_positions), resonance_positions, 'x', color=_colors[1])
+        plot_single_resonance_level(ax,
+                                    resonance_ratio,
+                                    resonance_positions,
+                                    resonance_line_style,
+                                    resonance_position_style)
 
     y_ticks = sorted(y_ticks)
     y_tick_labels = ["{:.2f}".format(x) for x in y_ticks]
@@ -116,10 +148,19 @@ def plot_resonances(ax, resonance_data):
     return ax2
 
 
-def run_example(ax, energy, n_points, f_window, y_labels_no_print_interval, filenames, ratio_max_int):
-    initial_points, g = initial_points_and_g_on_energy_surface(energy, n_points, f_window)
+def run_example(ax,
+                energy,
+                n_points,
+                f_window,
+                y_labels_no_print_interval,
+                filenames, ratio_max_int):
+    initial_points, g = initial_points_and_g_on_energy_surface(energy,
+                                                               n_points,
+                                                               f_window)
 
-    np.savetxt(filenames['initial_points_filename'], initial_points, delimiter=" ")
+    np.savetxt(filenames['initial_points_filename'],
+               initial_points,
+               delimiter=" ")
 
     ratio_list = make_ratio_set(ratio_max_int)
 
@@ -146,34 +187,34 @@ def run_example(ax, energy, n_points, f_window, y_labels_no_print_interval, file
 
     ax2 = plot_resonances(ax, resonance_data)
 
-    # avoid overlapping resonance y labels near the separatrix, if there is a separatrix
+    # if there is a separatrix,
+    # avoid overlapping resonance y labels near the separatrix.
     if float(energy) > 0 and y_labels_no_print_interval:
         label_list = ax2.get_yticklabels()
+        y_no_print_min, y_no_print_max = y_labels_no_print_interval
         for label in label_list:
-            if y_labels_no_print_interval[0] < float(label.get_text()) < y_labels_no_print_interval[1]:
+            y = float(label.get_text())
+            if y_no_print_min < y < y_no_print_max:
                 label.set_visible(False)
-
-
 
 
 if __name__ == "__main__":
     Energy = 'P'
 
-    params =\
-    {
-        'energy': 0.5,
-        'n_points': 40,
-        'f_window': (0.3001, 1.5),
-        'y_labels_no_print_interval': (0.3, 0.67),
-        'ratio_max_int': 8,
-        'n': -5,
-        'm': 4,
-        'plot_initial_points': False
-    }
+    params = {
+                'energy': 0.5,
+                'n_points': 40,
+                'f_window': (0.3001, 1.5),
+                'y_labels_no_print_interval': (0.5, 0.67),
+                'ratio_max_int': 4,
+                'n': -5,
+                'm': 4,
+                'plot_initial_points': False
+              }
 
     init_points, g = initial_points_and_g_on_energy_surface(params['energy'],
-            params['n_points'],
-            params['f_window'])
+                                                            params['n_points'],
+                                                            params['f_window'])
 
     sns.set_style("ticks")
 
@@ -199,6 +240,6 @@ if __name__ == "__main__":
                                                   params['f_window'],
                                                   n_samples=15)
 
-    plot_resonances(ax, resonance_data)
+    ax2 = plot_resonances(ax, resonance_data)
 
     plt.show()
