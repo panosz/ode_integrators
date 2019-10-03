@@ -1,5 +1,10 @@
 
-add_library(action_integration_ext MODULE src/action_integration_ext.cpp include/ActionIntegrationResultDecorator.hpp)
+add_library(action_integration_ext MODULE 
+            src/action_integration_ext.cpp 
+            include/ActionIntegrationResultDecorator.hpp
+            src/state_bindings.cpp
+            include/state_bindings.hpp
+            )
 
 target_link_libraries(action_integration_ext Boost::python37 Boost::numpy37 Python3::Python poincare_map )
 set_target_properties(action_integration_ext PROPERTIES PREFIX "")
