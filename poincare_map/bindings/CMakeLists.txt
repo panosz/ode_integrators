@@ -4,6 +4,7 @@ add_library(action_integration_ext MODULE
             include/ActionIntegrationResultDecorator.hpp
             src/state_bindings.cpp
             include/state_bindings.hpp
+            src/action_integration_bindings.cpp
             )
 
 target_link_libraries(action_integration_ext Boost::python37 Boost::numpy37 Python3::Python poincare_map )
