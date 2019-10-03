@@ -20,6 +20,13 @@ target_compile_options(action_integration_ext
         -march=native
         >
         )
+target_include_directories(
+        action_integration_ext PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include/poincare_map/bindings/include>
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}") 
 message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}") 
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}") 
