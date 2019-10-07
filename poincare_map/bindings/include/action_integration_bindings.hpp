@@ -41,14 +41,17 @@ namespace ActionIntegrationBindings{
 
   ActionIntegrationResultDecorator integrate_E_H_O(const np::ndarray& ndar,
                                                    double mass,
-                                                   double integration_time);
+                                                   double integration_time,
+                                                   IntegrationOptions options);
 
   ActionIntegrationResultDecorator integrate_E_Pendulum(const np::ndarray& ndar,
                                                         double mass,
-                                                        double integration_time);
+                                                        double integration_time,
+                                                        IntegrationOptions options);
   void export_ActionIntegrationResultDecorator();
   void export_integrate_E_H_O();
   void export_integrate_E_Pendulum();
+  void export_IntegrationOptions();
 
 
 }

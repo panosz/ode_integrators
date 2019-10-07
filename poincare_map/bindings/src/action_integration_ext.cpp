@@ -28,6 +28,7 @@ BOOST_PYTHON_MODULE(action_integration_ext)
   ActionIntegrationBindings::export_ActionIntegrationResultDecorator();
   ActionIntegrationBindings::export_integrate_E_H_O();
   ActionIntegrationBindings::export_integrate_E_Pendulum();
+  ActionIntegrationBindings::export_IntegrationOptions();
 
 
 }

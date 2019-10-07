@@ -89,9 +89,14 @@ list_of_points = [np.array(x) for x in [[4.1, 3.0, 1, 0],
 
 @pytest.mark.parametrize("s", list_of_points)
 def test_action_integration(s):
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    options = ai.IntegrationOptions(**option_dict)
     mass = 1.0
     anal_ho = AnalyticHO(mass)
-    numer_ho = ai.integrate_E_H_O(s, mass=mass)
+    numer_ho = ai.integrate_E_H_O(s,
+                                  mass=mass,
+                                  integration_time=1000,
+                                  integration_options=options)
     result = numer_ho.hessian()
     desired = anal_ho.hessian(s)
     nt.assert_allclose(result, desired, atol=1e-10, rtol=1e-10)
