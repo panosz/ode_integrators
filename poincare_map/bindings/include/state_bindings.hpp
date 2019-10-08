@@ -18,5 +18,10 @@ namespace StateBindings {
   np::ndarray args_to_nd_array(double, double, double);
   np::ndarray args_to_Hessian(double xx, double xy, double yy);
 
+  namespace ArmaSB{
+  np::ndarray vector_of_arma_mat_to_nd_array_naive(const std::vector<arma::mat>& A);
+  void export_iterable_to_ndarray_for_testing();
+
+  }
 }
 #endif /* ifndef PANOS_STATE_BINDINGS_HPP */
