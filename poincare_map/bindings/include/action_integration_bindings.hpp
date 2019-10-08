@@ -10,10 +10,6 @@ namespace ActionIntegrationBindings{
   namespace p = boost::python;
   namespace np = boost::python::numpy;
 
-  ///ToDo: Provide interface for IntegrationOptions
-  const auto DefaultIntegrationOptions = IntegrationOptions(1e-12, 1e-12, 1e-5);
-  const double DefaultIntegrationTime = 1000;
-
 
   class ActionIntegrationResultDecorator
   {
