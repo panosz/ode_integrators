@@ -3,20 +3,6 @@ import numpy.testing as nt
 import pytest
 import action_integration_ext as ai
 
-
-def test_args_to_array():
-    result = ai.args_to_array(1., 2., 3.)
-    desired = np.array([1., 2., 3.])
-    nt.assert_array_equal(result, desired)
-
-
-def test_args_to_Hessian():
-    result = ai.args_to_Hessian(1, 2, 3)
-    desired = np.array([[1., 2.],
-                        [2., 3.]])
-    nt.assert_array_equal(result, desired)
-
-
 _P_COORDINATE = 0
 _Q_COORDINATE = 1
 _F_COORDINATE = 2
