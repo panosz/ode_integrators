@@ -3,12 +3,14 @@
 
 namespace ActionIntegrationBindings{
 
-  ActionIntegrationResult integrate_E_H_O_impl(const np::ndarray& ndar,
-                                               double mass,
-                                               double integration_time,
-                                               IntegrationOptions options)
+  template<typename Hamiltonian>
+  ActionIntegrationResultDecorator
+  action_integration_binding_impl(const np::ndarray& ndar,
+                                  double mass,
+                                  double integration_time,
+                                  IntegrationOptions options)
   {
-    const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(mass);
+    const auto myHam = Hamiltonian(mass);
     auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
     const auto s = StateBindings::ndarray_to_phase_space_state(ndar);
 
@@ -16,17 +18,6 @@ namespace ActionIntegrationBindings{
   }
 
 
-  ActionIntegrationResult integrate_E_Pendulum_impl(const np::ndarray& ndar,
-                                                    double mass,
-                                                    double integration_time,
-                                                    IntegrationOptions options)
-  {
-    const auto myHam = DS::UnperturbedExtendedPendulumHamiltonian(mass);
-    auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
-    const auto s = StateBindings::ndarray_to_phase_space_state(ndar);
-
-    return action_integration(my_sys, s, integration_time, options);
-  }
 
 
   ActionIntegrationResultDecorator integrate_E_H_O(const np::ndarray& ndar,
@@ -34,7 +25,8 @@ namespace ActionIntegrationBindings{
                                                    double integration_time,
                                                    IntegrationOptions options)
   {
-    return integrate_E_H_O_impl(ndar, mass, integration_time, options);
+    return action_integration_binding_impl<DS::UnperturbedExtendedOscillatorHamiltonian>
+      (ndar, mass, integration_time, options);
   }
 
 
@@ -44,7 +36,8 @@ namespace ActionIntegrationBindings{
                                                         double integration_time,
                                                         IntegrationOptions options)
   {
-    return integrate_E_Pendulum_impl(ndar, mass, integration_time, options);
+    return action_integration_binding_impl<DS::UnperturbedExtendedPendulumHamiltonian>
+      (ndar, mass, integration_time, options);
   }
 
 
