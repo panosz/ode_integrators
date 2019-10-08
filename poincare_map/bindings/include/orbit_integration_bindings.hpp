@@ -1,0 +1,7 @@
+#ifndef ORBIT_INTEGRATION_BINDINGS_HPP_FAJZMQ7U
+#define ORBIT_INTEGRATION_BINDINGS_HPP_FAJZMQ7U
+
+#include "state_bindings.hpp"
+
+
+#endif /* end of include guard: ORBIT_INTEGRATION_BINDINGS_HPP_FAJZMQ7U */

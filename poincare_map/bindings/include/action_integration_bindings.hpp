@@ -47,7 +47,6 @@ namespace ActionIntegrationBindings{
   void export_ActionIntegrationResultDecorator();
   void export_integrate_E_H_O();
   void export_integrate_E_Pendulum();
-  void export_IntegrationOptions();
 
 
 }
