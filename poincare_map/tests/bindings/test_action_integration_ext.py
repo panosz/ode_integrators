@@ -85,4 +85,12 @@ def test_action_integration(s):
                                   integration_options=options)
     result = numer_ho.hessian()
     desired = anal_ho.hessian(s)
+
+    a = ai.closed_pendulum_orbit(s,
+                                 mass=mass,
+                                 integration_time=1000,
+                                 integration_options=options)
+
+    print(f"shape of a = {a.shape}")
     nt.assert_allclose(result, desired, atol=1e-10, rtol=1e-10)
+
