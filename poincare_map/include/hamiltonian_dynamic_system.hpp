@@ -200,6 +200,53 @@ namespace DS
     };
 
     template<typename UnperturbedHamiltonian>
+    class UnperturbedDynamicSystem {
+
+     public:
+      using StateType = PhaseSpaceState;
+
+     private:
+      UnperturbedHamiltonian h_;
+
+      double dpdt (const FirstDerivatives& dh) const
+      {
+        return -dh.dq;
+      };
+      double dqdt (const FirstDerivatives& dh) const
+      {
+        return dh.dp;
+      }
+      double dphidt (const FirstDerivatives& dh) const
+      {
+        return dh.dF;
+      }
+
+
+     public:
+
+      explicit UnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+          : h_{h}
+      { }
+
+      void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
+      {
+
+        const auto dh = h_.first_derivatives(s);
+
+        dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
+        dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
+        dsdt[static_cast<unsigned>(CoordinateTag::F)] = 0;
+        dsdt[static_cast<unsigned>(CoordinateTag::phi)] = dphidt(dh);
+      }
+    };
+
+    template<typename UnperturbedHamiltonian>
+    UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+    {
+      return UnperturbedDynamicSystem<UnperturbedHamiltonian>(h);
+    }
+
+    template<typename UnperturbedHamiltonian>
     class ActionDynamicSystem {
 
      public:

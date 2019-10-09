@@ -171,76 +171,138 @@ int main (int argc, char *argv[])
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
 
   const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(1.4);
-  auto my_sys = DS::makeActionDynamicSystem(myHam);
 
-  //Uncomment the lines below, to calculate and print out a complete closed orbit
-//
-//  std::cout << "Demonstrate integration of single init state\n";
-//  const auto init_state = DS::phase_to_extended_space_state(init_states[10]);
-//  std::cout << "init_state = " << init_state;
-//
-//  const auto closed_orbit = integrate_along_closed_orbit(my_sys, init_state, user_options.integration_time, options);
-//  const auto last_point = last_point_on_closed_orbit(my_sys, init_state, user_options.integration_time, options);
-//  for (const auto& s : closed_orbit)
-//    std::cout << s;
-//
-//  std::cout << "init_state " << init_state <<
-//            "final_state" << closed_orbit.back() ;
-//
-//  std::cout << "\nEnd Demonstratie integration of single init state\n";
 
-  std::cout << "Compare analytical and numerical calculations\n";
+  { // Uncomment this block, to calculate and print out
+    // a complete closed orbit
+    auto my_phase_space_sys = DS::makeUnperturbedDynamicSystem(myHam);
+    std::cout << "\nDemonstrate integration in single closed orbit\n";
+    std::cout << "----------------------------------------------\n";
 
-  std::cout << "Action integration for all states\n\n";
-  std::cout << "init_F" << "\t\t"
-            << "Action" << "\t\t"
-            << "omega_theta" << "\t\t"
-            << "omega_phi" << "\t\t"
-            << "omega_phi_analytic" << "\t\t"
-            << "g_factor" << "\t\t"
-            << "gamma_over_two_pi" << "\t\t"
-            << "d2K_dJ2" << "\t\t"
-            << "domega_dJ_analytic" << "\t\t"
-            << "domega_dF" << "\t\t"
-            << "d2K_dJdF" << "\t\t"
-            << " d2K_dJdF_analytic" << "\t\t"
-            << "d2K_dF2" << "\t\t"
-            << " d2K_dF2_analytic" << "\n";
+    const auto init_state = init_states[10];
 
-  for (const auto& s:init_states)
+    std::cout << "init_state = " << init_state;
+
+    const auto closed_orbit = integrate_along_closed_orbit(
+                                                my_phase_space_sys,
+                                                init_state,
+                                                user_options.integration_time,
+                                                options);
+
+    const auto last_point = last_point_on_closed_orbit(
+                                                my_phase_space_sys,
+                                                init_state,
+                                                user_options.integration_time,
+                                                options);
+
+    for (const auto& s : closed_orbit)
+      std::cout << s;
+
+    std::cout << "init_state " << init_state
+              << "final_state" << closed_orbit.back() ;
+
+    std::cout <<
+      "\nEnd of Demonstrate integration in single closed orbit\n";
+    std::cout <<
+      "-----------------------------------------------------\n";
+  }
+
+  { // Uncomment this block, to calculate and print out
+    // a complete closed orbit in extended phase space
+    auto my_sys = DS::makeActionDynamicSystem(myHam);
+    std::cout << "\nDemonstrate extended integration in single closed orbit\n";
+    std::cout << "-------------------------------------------------------\n";
+
+    const auto init_state = DS::phase_to_extended_space_state(init_states[10]);
+    std::cout << "init_state = " << init_state;
+
+    const auto closed_orbit = integrate_along_closed_orbit(
+                                                my_sys,
+                                                init_state,
+                                                user_options.integration_time,
+                                                options);
+
+    const auto last_point = last_point_on_closed_orbit(
+                                                my_sys,
+                                                init_state,
+                                                user_options.integration_time,
+                                                options);
+
+    for (const auto& s : closed_orbit)
+      std::cout << s;
+
+    std::cout << "init_state " << init_state
+              << "final_state" << closed_orbit.back() ;
+
+    std::cout <<
+      "\nEnd of Demonstrate extended integration in single closed orbit\n";
+    std::cout <<
+      "--------------------------------------------------------------\n";
+
+  }
+
+  { // Uncomment this block, to test the numerical action integration results
+    // versus the analytical calculations
+    std::cout << "Compare analytical and numerical calculations\n";
+
+    std::cout << "Action integration for all states\n\n";
+    std::cout << "init_F" << "\t\t"
+      << "Action" << "\t\t"
+      << "omega_theta" << "\t\t"
+      << "omega_phi" << "\t\t"
+      << "omega_phi_analytic" << "\t\t"
+      << "g_factor" << "\t\t"
+      << "gamma_over_two_pi" << "\t\t"
+      << "d2K_dJ2" << "\t\t"
+      << "domega_dJ_analytic" << "\t\t"
+      << "domega_dF" << "\t\t"
+      << "d2K_dJdF" << "\t\t"
+      << " d2K_dJdF_analytic" << "\t\t"
+      << "d2K_dF2" << "\t\t"
+      << " d2K_dF2_analytic" << "\n";
+
+
+    auto my_sys = DS::makeActionDynamicSystem(myHam);
+
+    for (const auto& s:init_states)
     {
       const auto d2KdJ2_analytical = myHam.d2KdJ2(s);
       const auto d2KdJdF_analytical = myHam.d2KdJdF(s);
       const auto omega_phi_analytical = myHam.dKdF(s);
       const auto d2KdF2_analytical = myHam.d2KdF2(s);
 
-      const auto action_result = action_integration(my_sys, s, user_options.integration_time, options);
+      const auto action_result =
+        action_integration(my_sys,
+                           s,
+                           user_options.integration_time,
+                           options);
+
       std::cout << s[2] << "\t\t"
-                << action_result.Action() << "\t\t"
-                << action_result.omega_theta() << "\t\t"
-                << action_result.omega_phi() << "\t\t"
-                << omega_phi_analytical << "\t\t"
-                << action_result.g_factor() << "\t\t"
-                << action_result.one_div_two_pi_gamma() << "\t\t"
-                << action_result.d2K_dJ2() << "\t\t"
-                << d2KdJ2_analytical << "\t\t"
-                << action_result.domega_dF() << "\t\t"
-                << action_result.d2K_dJdF() << "\t\t"
-                << d2KdJdF_analytical << "\t\t"
-                << action_result.d2K_dF2() << "\t\t"
-                << d2KdF2_analytical << '\n';
+        << action_result.Action() << "\t\t"
+        << action_result.omega_theta() << "\t\t"
+        << action_result.omega_phi() << "\t\t"
+        << omega_phi_analytical << "\t\t"
+        << action_result.g_factor() << "\t\t"
+        << action_result.one_div_two_pi_gamma() << "\t\t"
+        << action_result.d2K_dJ2() << "\t\t"
+        << d2KdJ2_analytical << "\t\t"
+        << action_result.domega_dF() << "\t\t"
+        << action_result.d2K_dJdF() << "\t\t"
+        << d2KdJdF_analytical << "\t\t"
+        << action_result.d2K_dF2() << "\t\t"
+        << d2KdF2_analytical << '\n';
 
     }
 
-  std::cout << "\n\n\n";
-  std::cout << "**************************************\n";
-  std::cout << "**********     RUN TESTS    **********\n";
-  std::cout << "**************************************\n";
+    std::cout << "\n\n\n";
+    std::cout << "**************************************\n";
+    std::cout << "**********     RUN TESTS    **********\n";
+    std::cout << "**************************************\n";
 
-  int no_of_passed_tests = 0;
-  int no_of_failed_tests = 0;
-  int no_of_tests = 0;
-  for (const auto& s:init_states)
+    int no_of_passed_tests = 0;
+    int no_of_failed_tests = 0;
+    int no_of_tests = 0;
+    for (const auto& s:init_states)
     {
       const auto action_result = action_integration(my_sys, s, user_options.integration_time, options);
       const auto passed = test_integration_result(s, action_result, myHam, 1e-10);
@@ -249,10 +311,12 @@ int main (int argc, char *argv[])
       no_of_tests +=1;
 
     }
-  std::cout << "******************************************************************************************\n";
-  std::cout << "*   TOTAL TESTS: " << no_of_tests << '\n';
-  std::cout << "*   PASSED: " << no_of_passed_tests<< '\n';
-  std::cout << "*   FAILED: " << no_of_failed_tests<< '\n';
-  std::cout << "******************************************************************************************\n";
+    std::cout << "******************************************************************************************\n";
+    std::cout << "*   TOTAL TESTS: " << no_of_tests << '\n';
+    std::cout << "*   PASSED: " << no_of_passed_tests<< '\n';
+    std::cout << "*   FAILED: " << no_of_failed_tests<< '\n';
+    std::cout << "******************************************************************************************\n";
+  }
+
   return 0;
 }
