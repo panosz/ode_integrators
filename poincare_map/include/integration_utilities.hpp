@@ -19,30 +19,18 @@
 using namespace boost::numeric::odeint;
 
 template<typename System>
-using ErrorStepperType = runge_kutta_cash_karp54<typename System::StateType, double, typename System::StateType, double, vector_space_algebra>;
+using ErrorStepperType = runge_kutta_cash_karp54<typename System::StateType,
+                                                 double,
+                                                 typename System::StateType,
+                                                 double,
+                                                 vector_space_algebra>;
 
 template<typename System>
 using ControlledStepperType = controlled_runge_kutta<ErrorStepperType<System> >;
 
-template<typename System>
-typename System::StateType step_on_surface (SystemAndPoincareSurface<System> sys,
-                                            typename System::StateType s,
-                                            ErrorStepperType<System> stepper)
+
+struct IntegrationOptions
 {
-  typename System::StateType state_on_surface{};
-
-  const auto systemPerpendicularToSurface = [sys] (const typename System::StateType& state,
-                                                   typename System::StateType& dsdt, const double t)
-  {
-      sys.eval_perp_to_surface(state, dsdt, t);
-  };
-
-  double distance_from_surface = -sys.surface_eval(s);
-  stepper.do_step(systemPerpendicularToSurface, s, 0, state_on_surface, distance_from_surface);
-  return state_on_surface;
-}
-
-struct IntegrationOptions {
     double abs_err;
     double rel_err;
     double dt;
@@ -51,6 +39,28 @@ struct IntegrationOptions {
         : abs_err{abs_error}, rel_err{rel_error}, dt{init_time_step}
     { }
 };
+
+
+template<typename System>
+typename System::StateType step_on_surface(SystemAndPoincareSurface<System> sys,
+                                           typename System::StateType s,
+                                           ErrorStepperType<System> stepper)
+{
+  typename System::StateType state_on_surface{};
+
+  const auto systemPerpendicularToSurface =
+            [sys](const typename System::StateType& state,
+                  typename System::StateType& dsdt,
+                  const double t)
+  {
+      sys.eval_perp_to_surface(state, dsdt, t);
+  };
+
+  const double distance_from_surface = -sys.surface_eval(s);
+  stepper.do_step(systemPerpendicularToSurface, s, 0, state_on_surface, distance_from_surface);
+  return state_on_surface;
+}
+
 
 template<typename System>
 auto make_OrbitRange (System sys,
