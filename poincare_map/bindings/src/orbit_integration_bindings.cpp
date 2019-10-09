@@ -14,10 +14,13 @@ namespace OrbitIntegrationBindings
   {
     const auto myHam = Hamiltonian(mass);
     auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
-    const auto s = StateBindings::ndarray_to_phase_space_state(starting_point);
+    const auto input_state =
+      StateBindings::ndarray_to_phase_space_state(starting_point);
+
+    const auto extended_state = DS::phase_to_extended_space_state(input_state);
 
     const auto orbit = integrate_along_closed_orbit(my_sys,
-                                                    s,
+                                                    extended_state,
                                                     integration_time,
                                                     options);
 
