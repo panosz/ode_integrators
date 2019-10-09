@@ -34,6 +34,43 @@ namespace{
 
   }
 
+
+  template<typename ArmaState>
+  np::ndarray vector_of_Arma_State_to_nd_array_naive(const std::vector<ArmaState>& A)
+  {
+
+    // construct a type for C++ double
+    const np::dtype dtype = np::dtype::get_builtin<double>();
+
+    const auto n_rows = A.size();
+
+    if (n_rows == 0) {
+      const p::tuple shape = p::make_tuple(0);
+      return np::empty(shape, dtype);
+    }
+
+    const auto n_cols = A[0].size();
+
+    if (n_cols == 0) {
+      const p::tuple shape = p::make_tuple(n_rows,0);
+      return np::empty(shape, dtype);
+    }
+
+    //construct the shape as a tuple.
+    const p::tuple shape = p::make_tuple(n_rows, n_cols);
+
+    np::ndarray a = np::empty(shape, dtype);
+
+    for (arma::uword i = 0; i < n_rows; ++i)
+    {
+      for (arma::uword j = 0; j < n_cols; ++j)
+      {
+        a[i][j] = A[i].at(j);
+      }
+    }
+    return a;
+  }
+
 }
 
 
@@ -46,37 +83,12 @@ namespace StateBindings {
 
     np::ndarray vector_of_arma_mat_to_nd_array_naive(const std::vector<arma::mat>& A)
     {
+      return vector_of_Arma_State_to_nd_array_naive<arma::mat>(A);
+    }
 
-      // construct a type for C++ double
-      const np::dtype dtype = np::dtype::get_builtin<double>();
-
-      const auto n_rows = A.size();
-
-      if (n_rows == 0) {
-        const p::tuple shape = p::make_tuple(0);
-        return np::empty(shape, dtype);
-      }
-
-      const auto n_cols = A[0].size();
-
-      if (n_cols == 0) {
-        const p::tuple shape = p::make_tuple(n_rows,0);
-        return np::empty(shape, dtype);
-      }
-
-      //construct the shape as a tuple.
-      const p::tuple shape = p::make_tuple(n_rows, n_cols);
-
-      np::ndarray a = np::empty(shape, dtype);
-
-      for (arma::uword i = 0; i < n_rows; ++i)
-      {
-        for (arma::uword j = 0; j < n_cols; ++j)
-        {
-          a[i][j] = A[i].at(j);
-        }
-      }
-      return a;
+    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::ExtendedSpaceState>& vds)
+    {
+      return vector_of_Arma_State_to_nd_array_naive<DS::ExtendedSpaceState>(vds);
     }
 
 
