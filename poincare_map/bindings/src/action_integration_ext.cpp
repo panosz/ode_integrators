@@ -41,7 +41,7 @@ namespace { // Avoid cluttering the global namespace.
 
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
   const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(mass);
-  auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
+  auto my_sys = DS::makeActionDynamicSystem(myHam);
   const auto s = ndarray_to_phase_space_state(ndar);
 
   return action_integration(my_sys, s, integration_time, options);
@@ -54,7 +54,7 @@ namespace { // Avoid cluttering the global namespace.
 
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
   const auto myHam = DS::UnperturbedExtendedPendulumHamiltonian(mass);
-  auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
+  auto my_sys = DS::makeActionDynamicSystem(myHam);
   const auto s = ndarray_to_phase_space_state(ndar);
 
   return action_integration(my_sys, s, integration_time, options);

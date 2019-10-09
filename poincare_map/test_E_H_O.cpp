@@ -171,7 +171,7 @@ int main (int argc, char *argv[])
   const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
 
   const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(1.4);
-  auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
+  auto my_sys = DS::makeActionDynamicSystem(myHam);
 
   //Uncomment the lines below, to calculate and print out a complete closed orbit
 //

@@ -200,7 +200,7 @@ namespace DS
     };
 
     template<typename UnperturbedHamiltonian>
-    class UnperturbedDynamicSystem {
+    class ActionDynamicSystem {
 
      public:
       using StateType = ExtendedSpaceState;
@@ -234,7 +234,7 @@ namespace DS
 
      public:
 
-      explicit UnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+      explicit ActionDynamicSystem (const UnperturbedHamiltonian& h)
           : h_{h}
       { }
 
@@ -273,9 +273,9 @@ namespace DS
     };
 
     template<typename UnperturbedHamiltonian>
-    UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+    ActionDynamicSystem<UnperturbedHamiltonian> makeActionDynamicSystem (const UnperturbedHamiltonian& h)
     {
-      return UnperturbedDynamicSystem<UnperturbedHamiltonian>(h);
+      return ActionDynamicSystem<UnperturbedHamiltonian>(h);
     }
 }
 #endif //ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
