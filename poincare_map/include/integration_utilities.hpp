@@ -324,6 +324,37 @@ namespace
       return make_system_and_poincare_surface(sys, my_poincare_surface);
     }
 
+    bool almost_equal(double x, double y, double tol) noexcept
+    {
+      return std::abs(x - y) < tol;
+    }
+
+    class OrbitClosingChecker
+    {
+      /// callable. When called as occ(point), returns true,
+      /// when the p coordinate of 'point' is close to the
+      /// p coordinate of 'p_init', the point that was used
+      /// to initialize occ.
+
+      private:
+       double p_{};
+       double tol_{};
+
+      public:
+       template< typename PointType>
+       OrbitClosingChecker(const PointType& point, double tol)
+         :p_{point[static_cast<unsigned>(CoordinateTag::p)]},
+          tol_{tol}
+       {}
+
+       template <typename PointType>
+       bool operator()(const PointType& point) const noexcept
+       {
+         const auto p = point[static_cast<unsigned>(CoordinateTag::p)];
+         return almost_equal(p, p_, tol_);
+       }
+
+    };
 
     template<typename System, typename OutputContainer>
     auto
@@ -345,20 +376,10 @@ namespace
 
       auto orbit_range = orbit1.range();
 
-      auto surface_fun = [surf = my_system_and_pc.poincare_surface()] (auto s)
-      { return surf.eval(s); };
+      const auto closeness_tol =  integrationOptions.abs_err * 100;
 
       auto close_enough_to_initial_point =
-        [initial_point = first_point,
-         options = integrationOptions] (const auto& s)
-      {
-          const auto p_init =
-            initial_point[static_cast<unsigned>(CoordinateTag::p)];
-
-          const auto p_current = s[static_cast<unsigned>(CoordinateTag::p)];
-
-          return std::abs(p_current - p_init) < options.abs_err * 100;
-      };
+        OrbitClosingChecker(first_point, closeness_tol);
 
       const auto begin_range = orbit_range.begin();
       const auto end_range = orbit_range.end();
@@ -374,7 +395,7 @@ namespace
                                            range_it,
                                            end_range,
                                            std::back_inserter(outputContainer),
-                                           surface_fun,
+                                           my_system_and_pc.poincare_surface(),
                                            1.0,
                                            poinc_surf_direction);
 
