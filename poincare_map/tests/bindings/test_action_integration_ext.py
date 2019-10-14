@@ -68,8 +68,8 @@ list_of_points = [np.array(x) for x in [[4.1, 3.0, 1, 0],
                                         [4.1, 3.5, 6, 0],
                                         [4.1, 3.6, 7, 0],
                                         [4.1, 3.7, 8, 0],
-                                        [4.1, 3.8, 9, 0],
-                                        [4.1, 3.9, 10, 0],
+                                        [4.1, 3.8 - np.pi, 9, 0],
+                                        [4.1, 3.9 - np.pi, 10, 0],
                                         ]]
 
 
@@ -88,8 +88,8 @@ def test_action_integration(s):
 
     a = ai.closed_pendulum_orbit(s,
                                  mass=mass,
-                                 integration_time=1000,
+                                 integration_time=10000,
                                  integration_options=options)
 
-    assert a.shape == (0, 1)
+    assert a.shape[1] == 4
     nt.assert_allclose(result, desired, atol=1e-10, rtol=1e-10)

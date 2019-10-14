@@ -17,10 +17,8 @@ namespace OrbitIntegrationBindings
     const auto input_state =
       StateBindings::ndarray_to_phase_space_state(starting_point);
 
-    const auto extended_state = DS::phase_to_extended_space_state(input_state);
-
     const auto orbit = integrate_along_closed_orbit(my_sys,
-                                                    extended_state,
+                                                    input_state,
                                                     integration_time,
                                                     options);
 

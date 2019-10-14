@@ -1,5 +1,7 @@
+#include <exception>
 #include "action_integration_bindings.hpp"
 #include "hamiltonian_dynamic_system.hpp"
+#include "action_integration_result.hpp"
 
 namespace ActionIntegrationBindings{
 
@@ -11,10 +13,22 @@ namespace ActionIntegrationBindings{
                                   IntegrationOptions options)
   {
     const auto myHam = Hamiltonian(mass);
-    auto my_sys = DS::makeUnperturbedDynamicSystem(myHam);
+    auto my_sys = DS::makeActionDynamicSystem(myHam);
     const auto s = StateBindings::ndarray_to_phase_space_state(ndar);
 
+
+    try
+    {
+      const auto res = action_integration(my_sys, s, integration_time, options);
+    }
+    catch(...)
+    {
+      throw std::logic_error("just integrated");
+    }
+
     return action_integration(my_sys, s, integration_time, options);
+
+
   }
 
 
