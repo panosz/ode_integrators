@@ -61,15 +61,32 @@ namespace DynamicSystemBindings{
   {
     p::class_<PendulumDynamicSystem>("PendulumDynamicSystem",
         p::init<double>())
-      .def("action_integrals",&PendulumDynamicSystem::action_integrals)
-      .def("closed_orbit",&PendulumDynamicSystem::closed_orbit);
+      .def("action_integrals",
+           &PendulumDynamicSystem::action_integrals,
+           (p::arg("s"),
+            p::arg("integration_time"),
+            p::arg("integration_options"))
+           )
+      .def("closed_orbit",
+           &PendulumDynamicSystem::closed_orbit,
+           (p::arg("s"),
+            p::arg("integration_time"),
+            p::arg("integration_options")));
   }
 
   void export_harmonic_osc_dynamic_system()
   {
     p::class_<HarmonicOscDynamicSystem>("HarmonicOscDynamicSystem",
         p::init<double>())
-      .def("action_integrals",&HarmonicOscDynamicSystem::action_integrals)
-      .def("closed_orbit",&HarmonicOscDynamicSystem::closed_orbit);
+      .def("action_integrals",
+           &HarmonicOscDynamicSystem::action_integrals,
+           (p::arg("s"),
+            p::arg("integration_time"),
+            p::arg("integration_options")))
+      .def("closed_orbit",
+           &HarmonicOscDynamicSystem::closed_orbit,
+           (p::arg("s"),
+            p::arg("integration_time"),
+            p::arg("integration_options")));
   }
 }

@@ -97,7 +97,9 @@ def test_action_integration2(s):
     anal_ho = AnalyticHO(mass)
 
     ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
-    ho_action_integrals = ho_dynamic_system.action_integrals(s, 1000, options)
+    ho_action_integrals = ho_dynamic_system.action_integrals(s=s,
+                                                             integration_time=1000,
+                                                             integration_options=options)
 
     result = ho_action_integrals.hessian()
     desired = anal_ho.hessian(s)
@@ -129,7 +131,9 @@ def test_orbit_integration2(s):
 
     ho_dynamic_system = ai.PendulumDynamicSystem(mass)
 
-    a = ho_dynamic_system.closed_orbit(s, 1000, options)
+    a = ho_dynamic_system.closed_orbit(s=s,
+                                       integration_time=1000,
+                                       integration_options=options)
 
     assert a.shape[1] == 4
 
