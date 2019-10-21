@@ -1,8 +1,7 @@
 #ifndef PANOS_ACTION_INTEGRATION_BINDINGS_HPP
 #define PANOS_ACTION_INTEGRATION_BINDINGS_HPP
 #include "action_integration.hpp"
-#include "action_integration_result.hpp"
-#include "state_bindings.hpp"
+#include "ActionIntegrationResultDecorator.hpp"
 
 
 namespace ActionIntegrationBindings{
@@ -11,29 +10,7 @@ namespace ActionIntegrationBindings{
   namespace np = boost::python::numpy;
 
 
-  class ActionIntegrationResultDecorator
-  {
-    private:
-      ActionIntegrationResult air_;
-    public:
-      ActionIntegrationResultDecorator(const ActionIntegrationResult& air);
-      ActionIntegrationResultDecorator(double x, double y, double z, SpecialIntegrals si);
-      double Action () const noexcept;
-      double theta_period () const noexcept;
-      double delta_phi () const noexcept;
-      double omega_theta () const;
-      double g_factor () const noexcept;
-      double omega_phi () const;
-      double domega_dJ () const;
-      double d2K_dJ2 () const;
-      double one_div_two_pi_gamma () const;
-      double domega_dF () const;
-      double d2K_dJdF () const;
-      double d2K_dF2 () const;
-      np::ndarray hessian() const;
 
-
-  };
 
   ActionIntegrationResultDecorator integrate_E_H_O(const np::ndarray& ndar,
                                                    double mass,
