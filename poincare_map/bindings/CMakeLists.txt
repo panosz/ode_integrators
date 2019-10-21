@@ -4,12 +4,9 @@ add_library(action_integration_ext MODULE
             include/ActionIntegrationResultDecorator.hpp
             src/state_bindings.cpp
             include/state_bindings.hpp
-            src/action_integration_bindings.cpp
             src/arma_state_bindings.cpp
             src/integration_options_bindings.cpp
             include/integration_options_bindings.hpp
-            src/orbit_integration_bindings.cpp
-            include/orbit_integration_bindings.hpp
             src/ActionIntegrationResultDecorator.cpp
             src/dynamic_system_bindings.cpp
             )
