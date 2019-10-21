@@ -49,6 +49,57 @@ namespace{
 
   };
 
+  const auto pendulum_docstring =
+             """The unpertrurbed extended pendulum class\n"""
+             "\n"
+             "PengulumDynamicSystem(mass)\n"
+             "\n"
+             "Parameters\n"
+             "----------\n"
+             "mass: float\n"
+             "\tthe mass of the system\n"
+             """";
+  const auto harmonic_osc_docstring =
+             """The unpertrurbed extended harmonic oscillator class\n"""
+             "\n"
+             "HarmonicOscDynamicSystem(mass)\n"
+             "\n"
+             "Parameters\n"
+             "----------\n"
+             "mass: float\n"
+             "\tthe mass of the system\n"
+             """";
+
+  const auto action_integrals_docstring =
+             """action_integrals(s, time, options)\n"
+             "calculate the action integrals along a closed orbit\n"
+             "\n"
+             "Parameters\n"
+             "----------\n"
+             "s: ndarray,\n"
+             "\tthe starting point of the orbit\n"
+             "time: ndarray,\n"
+             "\tthe maximum integration time\n"
+             "\tif in is exceeded before the orbit closes, an exception is thrown\n"
+             "options: IntegrationOptions,\n"
+             "\tthe integration options\n"
+             """";
+
+  const auto closed_orbit_docstring =
+             """closed_orbit(s, time, options)\n"
+             "calculate the closed orbit passing from point 's'\n"
+             "\n"
+             "Parameters\n"
+             "----------\n"
+             "s: ndarray,\n"
+             "\tthe starting point of the orbit\n"
+             "time: ndarray,\n"
+             "\tthe maximum integration time\n"
+             "\tif in is exceeded before the orbit closes, an exception is thrown\n"
+             "options: IntegrationOptions,\n"
+             "\tthe integration options\n"
+             """";
+
 }
 
 namespace DynamicSystemBindings{
@@ -60,33 +111,39 @@ namespace DynamicSystemBindings{
   void export_pendulum_dynamic_system()
   {
     p::class_<PendulumDynamicSystem>("PendulumDynamicSystem",
-        p::init<double>())
+                                     pendulum_docstring,
+                                     p::init<double>())
       .def("action_integrals",
            &PendulumDynamicSystem::action_integrals,
            (p::arg("s"),
-            p::arg("integration_time"),
-            p::arg("integration_options"))
+            p::arg("time"),
+            p::arg("options")),
+           action_integrals_docstring
            )
       .def("closed_orbit",
            &PendulumDynamicSystem::closed_orbit,
            (p::arg("s"),
-            p::arg("integration_time"),
-            p::arg("integration_options")));
+            p::arg("time"),
+            p::arg("options")),
+           closed_orbit_docstring);
   }
 
   void export_harmonic_osc_dynamic_system()
   {
     p::class_<HarmonicOscDynamicSystem>("HarmonicOscDynamicSystem",
-        p::init<double>())
+                                        harmonic_osc_docstring,
+                                        p::init<double>())
       .def("action_integrals",
            &HarmonicOscDynamicSystem::action_integrals,
            (p::arg("s"),
-            p::arg("integration_time"),
-            p::arg("integration_options")))
+            p::arg("time"),
+            p::arg("options")),
+           action_integrals_docstring)
       .def("closed_orbit",
            &HarmonicOscDynamicSystem::closed_orbit,
            (p::arg("s"),
-            p::arg("integration_time"),
-            p::arg("integration_options")));
+            p::arg("time"),
+            p::arg("options")),
+           closed_orbit_docstring);
   }
 }
