@@ -6,6 +6,7 @@
 #include "integration_options_bindings.hpp"
 #include "dynamic_system_bindings.hpp"
 #include "ActionIntegrationResultDecorator.hpp"
+#include "hamiltonians_bindings.hpp"
 
 namespace p = boost::python;
 namespace np = boost::python::numpy;
@@ -20,6 +21,8 @@ BOOST_PYTHON_MODULE(action_integration_ext)
   IntegrationOptionsBindings::export_IntegrationOptions();
   ActionIntegrationBindings::export_ActionIntegrationResultDecorator();
   StateBindings::ArmaSB::export_iterable_to_ndarray_for_testing();
+
+  HamiltoniansBindings::export_hamiltonians();
 
   DynamicSystemBindings::export_pendulum_dynamic_system();
   DynamicSystemBindings::export_harmonic_osc_dynamic_system();

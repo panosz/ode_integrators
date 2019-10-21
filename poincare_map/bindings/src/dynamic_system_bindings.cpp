@@ -1,6 +1,7 @@
 #include "dynamic_system_bindings.hpp"
 #include "action_integration.hpp"
 #include "ActionIntegrationResultDecorator.hpp"
+#include "hamiltonians_bindings.hpp"
 
 namespace{
   namespace p = boost::python;
@@ -13,6 +14,7 @@ namespace{
         Hamiltonian ham_{};
         DS::ActionDynamicSystem<Hamiltonian> action_system_{};
         DS::UnperturbedDynamicSystem<Hamiltonian> unperturbed_system_{};
+        using HDec = HamiltoniansBindings::Decorator<Hamiltonian>;
 
     public:
         explicit DynamicSystem(double mass):
@@ -29,6 +31,12 @@ namespace{
           const auto s = StateBindings::ndarray_to_phase_space_state(ndar);
           return action_integration(action_system_, s, integration_time, options);
         }
+
+        HDec get_ham() const noexcept
+        {
+          return HDec{ham_};
+        }
+
 
         np::ndarray
         closed_orbit(const np::ndarray& starting_point,
@@ -59,6 +67,7 @@ namespace{
              "mass: float\n"
              "\tthe mass of the system\n"
              """";
+
   const auto harmonic_osc_docstring =
              """The unpertrurbed extended harmonic oscillator class\n"""
              "\n"
@@ -113,6 +122,7 @@ namespace DynamicSystemBindings{
     p::class_<PendulumDynamicSystem>("PendulumDynamicSystem",
                                      pendulum_docstring,
                                      p::init<double>())
+      .add_property("hamiltonian",&PendulumDynamicSystem::get_ham)
       .def("action_integrals",
            &PendulumDynamicSystem::action_integrals,
            (p::arg("s"),
@@ -133,6 +143,7 @@ namespace DynamicSystemBindings{
     p::class_<HarmonicOscDynamicSystem>("HarmonicOscDynamicSystem",
                                         harmonic_osc_docstring,
                                         p::init<double>())
+      .add_property("hamiltonian",&HarmonicOscDynamicSystem::get_ham)
       .def("action_integrals",
            &HarmonicOscDynamicSystem::action_integrals,
            (p::arg("s"),

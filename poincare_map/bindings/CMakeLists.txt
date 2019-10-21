@@ -9,6 +9,7 @@ add_library(action_integration_ext MODULE
             include/integration_options_bindings.hpp
             src/ActionIntegrationResultDecorator.cpp
             src/dynamic_system_bindings.cpp
+            src/hamiltonians_bindings.cpp
             )
 
 target_link_libraries(action_integration_ext Boost::python37 Boost::numpy37 Python3::Python poincare_map )
