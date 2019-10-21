@@ -11,6 +11,7 @@ add_library(action_integration_ext MODULE
             src/orbit_integration_bindings.cpp
             include/orbit_integration_bindings.hpp
             src/ActionIntegrationResultDecorator.cpp
+            src/dynamic_system_bindings.cpp
             )
 
 target_link_libraries(action_integration_ext Boost::python37 Boost::numpy37 Python3::Python poincare_map )

@@ -6,19 +6,10 @@
 #include "action_integration_bindings.hpp"
 #include "integration_options_bindings.hpp"
 #include "orbit_integration_bindings.hpp"
+#include "dynamic_system_bindings.hpp"
 
 namespace p = boost::python;
 namespace np = boost::python::numpy;
-
-namespace { // Avoid cluttering the global namespace.
-
-
-
-
-}
-
-
-
 
 
 
@@ -35,6 +26,8 @@ BOOST_PYTHON_MODULE(action_integration_ext)
 
   OrbitIntegrationBindings::export_closed_pendulum_orbit();
   OrbitIntegrationBindings::export_closed_harmonic_osc_orbit();
+  DynamicSystemBindings::export_pendulum_dynamic_system();
+  DynamicSystemBindings::export_harmonic_osc_dynamic_system();
 
 
 

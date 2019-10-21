@@ -90,6 +90,22 @@ def test_action_integration(s):
 
 
 @pytest.mark.parametrize("s", list_of_points)
+def test_action_integration2(s):
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    options = ai.IntegrationOptions(**option_dict)
+    mass = 1.0
+    anal_ho = AnalyticHO(mass)
+
+    ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
+    ho_action_integrals = ho_dynamic_system.action_integrals(s, 1000, options)
+
+    result = ho_action_integrals.hessian()
+    desired = anal_ho.hessian(s)
+
+    nt.assert_allclose(result, desired, atol=1e-10, rtol=1e-10)
+
+
+@pytest.mark.parametrize("s", list_of_points)
 def test_orbit_integration(s):
     option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
@@ -99,6 +115,21 @@ def test_orbit_integration(s):
                                  mass=mass,
                                  integration_time=1000,
                                  integration_options=options)
+
+    assert a.shape[1] == 4
+
+    nt.assert_allclose(s[[0, 2]], a[-1, [0, 2]], atol=1e-10, rtol=1e-10)
+
+
+@pytest.mark.parametrize("s", list_of_points)
+def test_orbit_integration2(s):
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    options = ai.IntegrationOptions(**option_dict)
+    mass = 1.0
+
+    ho_dynamic_system = ai.PendulumDynamicSystem(mass)
+
+    a = ho_dynamic_system.closed_orbit(s, 1000, options)
 
     assert a.shape[1] == 4
 
