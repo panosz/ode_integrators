@@ -4,10 +4,7 @@
 
 namespace DynamicSystemBindings{
 
-
-
-  void export_pendulum_dynamic_system();
-  void export_harmonic_osc_dynamic_system();
+  void export_dynamic_systems();
 
 }
 

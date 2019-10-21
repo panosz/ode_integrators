@@ -111,50 +111,42 @@ namespace{
 
 }
 
-namespace DynamicSystemBindings{
-  using PendulumDynamicSystem =
-    DynamicSystem<DS::UnperturbedExtendedPendulumHamiltonian>;
-  using HarmonicOscDynamicSystem =
-    DynamicSystem<DS::UnperturbedExtendedOscillatorHamiltonian>;
 
-  void export_pendulum_dynamic_system()
-  {
-    p::class_<PendulumDynamicSystem>("PendulumDynamicSystem",
-                                     pendulum_docstring,
-                                     p::init<double>())
-      .add_property("hamiltonian",&PendulumDynamicSystem::get_ham)
+template<typename Hamiltonian>
+void export_dynamic_system(const char* system_name,
+                           const char* system_docstring)
+{
+  using DSH = DynamicSystem<Hamiltonian>;
+
+    p::class_<DSH>(system_name,
+                   system_docstring,
+                   p::init<double>())
+      .add_property("hamiltonian",&DSH::get_ham)
       .def("action_integrals",
-           &PendulumDynamicSystem::action_integrals,
+           &DSH::action_integrals,
            (p::arg("s"),
             p::arg("time"),
             p::arg("options")),
            action_integrals_docstring
            )
       .def("closed_orbit",
-           &PendulumDynamicSystem::closed_orbit,
+           &DSH::closed_orbit,
            (p::arg("s"),
             p::arg("time"),
             p::arg("options")),
            closed_orbit_docstring);
-  }
 
-  void export_harmonic_osc_dynamic_system()
+}
+
+namespace DynamicSystemBindings{
+  using PendulumHam = DS::UnperturbedExtendedPendulumHamiltonian;
+  using HarmonicOscHam= DS::UnperturbedExtendedOscillatorHamiltonian;
+
+  void export_dynamic_systems()
   {
-    p::class_<HarmonicOscDynamicSystem>("HarmonicOscDynamicSystem",
-                                        harmonic_osc_docstring,
-                                        p::init<double>())
-      .add_property("hamiltonian",&HarmonicOscDynamicSystem::get_ham)
-      .def("action_integrals",
-           &HarmonicOscDynamicSystem::action_integrals,
-           (p::arg("s"),
-            p::arg("time"),
-            p::arg("options")),
-           action_integrals_docstring)
-      .def("closed_orbit",
-           &HarmonicOscDynamicSystem::closed_orbit,
-           (p::arg("s"),
-            p::arg("time"),
-            p::arg("options")),
-           closed_orbit_docstring);
+    export_dynamic_system<PendulumHam>("PendulumDynamicSystem",
+                                       pendulum_docstring);
+    export_dynamic_system<HarmonicOscHam>("HarmonicOscDynamicSystem",
+                                          harmonic_osc_docstring);
   }
 }

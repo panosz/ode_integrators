@@ -24,8 +24,7 @@ BOOST_PYTHON_MODULE(action_integration_ext)
 
   HamiltoniansBindings::export_hamiltonians();
 
-  DynamicSystemBindings::export_pendulum_dynamic_system();
-  DynamicSystemBindings::export_harmonic_osc_dynamic_system();
+  DynamicSystemBindings::export_dynamic_systems();
 
 
 
