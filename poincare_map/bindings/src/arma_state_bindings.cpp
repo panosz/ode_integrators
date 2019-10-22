@@ -96,7 +96,27 @@ namespace StateBindings {
   {
     namespace p = StateBindings::p;
     namespace np = StateBindings::np;
+      np::ndarray iterable_1D_to_ndarray(const p::object& python_iterable)
+      {
+        const auto helper_vector = iterable_to_vector_double(python_iterable);
+        return copy_to_nd_array(helper_vector);
+      }
 
+      const char* iterable_1D_to_ndarray_doc =
+               """iterable_1D_to_ndarray(iterable)\n"
+               "create a 1D ndarray from 'iterable' via intermediate construction\n"
+               "of an 'std::vector<double>' instance.\n"
+               "To be used to test copying from and to std::vector\n"
+               "\n"
+               "Parameters\n"
+               "----------\n"
+               "iterable: object, iterable\n"
+               "\t must be an object convertible to a 1D array\n"
+               "\t i.e. an iterable of doubles\n"
+               "Retruns\n"
+               "-------\n"
+               "ndarray\n"
+               """";
   }
 
 
@@ -155,6 +175,12 @@ namespace StateBindings {
             ArmaSB::Testing::iterable_2D_to_ndarray,
             p::args("iterable"),
             ArmaSB::Testing::iterable_2D_to_ndarray_doc
+            );
+
+    p::def("iterable_1D_to_ndarray",
+            Testing::iterable_1D_to_ndarray,
+            p::args("iterable"),
+            Testing::iterable_1D_to_ndarray_doc
             );
   }
 }
