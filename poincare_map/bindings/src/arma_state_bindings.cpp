@@ -1,5 +1,6 @@
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
+#include <boost/range/algorithm/copy.hpp>
 #include <armadillo>
 #include <iostream>
 #include "state_bindings.hpp"
@@ -76,6 +77,23 @@ namespace{
 
 namespace StateBindings {
 
+  np::ndarray copy_to_nd_array(const std::vector<double>& vect)
+  {
+    // construct a type for C++ double
+    const np::dtype dtype = np::dtype::get_builtin<double>();
+    const p::tuple shape = p::make_tuple(vect.size());
+
+    //construct uninitialized array
+    np::ndarray arr = np::empty(shape, dtype);
+
+    boost::range::copy(vect,
+        reinterpret_cast<double*>(arr.get_data()));
+
+    return arr;
+
+  }
+
+
   namespace ArmaSB {
     namespace p = StateBindings::p;
     namespace np = StateBindings::np;
@@ -95,6 +113,7 @@ namespace StateBindings {
     {
       return copy_Arma_to_nd_array_naive<DS::PhaseSpaceState>(vds);
     }
+
 
 
     np::ndarray iterable_to_ndarray_for_testing(const p::object& python_iterable)

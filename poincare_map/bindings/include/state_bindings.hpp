@@ -17,15 +17,15 @@ namespace StateBindings {
   void export_args_to_nd_array();
   void export_args_to_Hessian();
 
+    np::ndarray copy_to_nd_array(const std::vector<double>&);
 
   namespace ArmaSB{
 
+    np::ndarray copy_to_nd_array(const std::vector<arma::mat>&);
 
-    np::ndarray copy_to_nd_array(const std::vector<arma::mat>& A);
+    np::ndarray copy_to_nd_array(const std::vector<DS::ExtendedSpaceState>&);
 
-    np::ndarray copy_to_nd_array(const std::vector<DS::ExtendedSpaceState>& vds);
-
-    np::ndarray copy_to_nd_array(const std::vector<DS::PhaseSpaceState>& vds);
+    np::ndarray copy_to_nd_array(const std::vector<DS::PhaseSpaceState>&);
 
     void export_iterable_to_ndarray_for_testing();
 
