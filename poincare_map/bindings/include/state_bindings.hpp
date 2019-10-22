@@ -4,8 +4,8 @@
 #include <boost/python/numpy.hpp>
 #include "hamiltonian_dynamic_system.hpp"
 
-
-namespace StateBindings {
+namespace StateBindings
+{
 
   namespace p = boost::python;
   namespace np = boost::python::numpy;
@@ -17,18 +17,19 @@ namespace StateBindings {
   void export_args_to_nd_array();
   void export_args_to_Hessian();
 
-    np::ndarray copy_to_nd_array(const std::vector<double>&);
+  np::ndarray copy_to_nd_array(const std::vector<double>&);
 
-  namespace ArmaSB{
+  void export_methods_for_testing();
 
+
+
+  namespace ArmaSB
+  {
     np::ndarray copy_to_nd_array(const std::vector<arma::mat>&);
 
     np::ndarray copy_to_nd_array(const std::vector<DS::ExtendedSpaceState>&);
 
     np::ndarray copy_to_nd_array(const std::vector<DS::PhaseSpaceState>&);
-
-    void export_iterable_to_ndarray_for_testing();
-
 
   }
 }

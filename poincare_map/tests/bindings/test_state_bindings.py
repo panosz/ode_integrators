@@ -19,5 +19,5 @@ def test_args_to_Hessian():
 def test_iterable_to_ndarray_for_testing():
     input = [[1, 2, 3], [2, 3, 4]]
     desired = np.array(input)
-    actual = ai.iterable_to_ndarray_for_testing(input)
+    actual = ai.iterable_2D_to_ndarray(input)
     nt.assert_allclose(actual=actual, desired=desired, rtol=1e-12)

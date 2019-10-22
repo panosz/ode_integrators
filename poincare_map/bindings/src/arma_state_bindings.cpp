@@ -90,6 +90,12 @@ namespace StateBindings {
         reinterpret_cast<double*>(arr.get_data()));
 
     return arr;
+  }
+
+  namespace Testing
+  {
+    namespace p = StateBindings::p;
+    namespace np = StateBindings::np;
 
   }
 
@@ -115,21 +121,40 @@ namespace StateBindings {
     }
 
 
-
-    np::ndarray iterable_to_ndarray_for_testing(const p::object& python_iterable)
+    namespace Testing
     {
-      const auto helper_vector = iterable_to_vector_of_arma_mat(python_iterable);
-      return copy_to_nd_array(helper_vector);
+      np::ndarray iterable_2D_to_ndarray(const ArmaSB::p::object& python_iterable)
+      {
+        const auto helper_vector = iterable_to_vector_of_arma_mat(python_iterable);
+        return copy_to_nd_array(helper_vector);
+      }
+
+      const char* iterable_2D_to_ndarray_doc =
+               """iterable_2D_to_ndarray(iterable)\n"
+               "create a 2D ndarray from 'iterable' via intermediate construction\n"
+               "of an 'Arma::mat' instance.\n"
+               "To be used to test copying from and to Arma::mat\n"
+               "\n"
+               "Parameters\n"
+               "----------\n"
+               "iterable: object, iterable\n"
+               "\t must be an object convertible to a 2D array\n"
+               "\t i.e. an iterable of same length iterables\n"
+               "Retruns\n"
+               "-------\n"
+               "ndarray\n"
+               """";
     }
 
-    /*********************
-    *  export bindings  *
-    *********************/
 
-    void export_iterable_to_ndarray_for_testing()
-    {
-      p::def("iterable_to_ndarray_for_testing", iterable_to_ndarray_for_testing);
-    }
+  }
 
+  void export_methods_for_testing()
+  {
+    p::def("iterable_2D_to_ndarray",
+            ArmaSB::Testing::iterable_2D_to_ndarray,
+            p::args("iterable"),
+            ArmaSB::Testing::iterable_2D_to_ndarray_doc
+            );
   }
 }

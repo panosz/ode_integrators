@@ -21,7 +21,7 @@ BOOST_PYTHON_MODULE(action_integration_ext)
 
   IntegrationOptionsBindings::export_IntegrationOptions();
   ActionIntegrationBindings::export_ActionIntegrationResultDecorator();
-  StateBindings::ArmaSB::export_iterable_to_ndarray_for_testing();
+  StateBindings::export_methods_for_testing();
 
   HamiltoniansBindings::export_hamiltonians();
 
