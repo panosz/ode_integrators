@@ -21,11 +21,11 @@ namespace StateBindings {
   namespace ArmaSB{
 
 
-    np::ndarray vector_of_arma_mat_to_nd_array_naive(const std::vector<arma::mat>& A);
+    np::ndarray copy_to_nd_array(const std::vector<arma::mat>& A);
 
-    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::ExtendedSpaceState>& vds);
+    np::ndarray copy_to_nd_array(const std::vector<DS::ExtendedSpaceState>& vds);
 
-    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::PhaseSpaceState>& vds);
+    np::ndarray copy_to_nd_array(const std::vector<DS::PhaseSpaceState>& vds);
 
     void export_iterable_to_ndarray_for_testing();
 

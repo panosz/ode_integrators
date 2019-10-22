@@ -36,7 +36,7 @@ namespace{
 
 
   template<typename ArmaState>
-  np::ndarray vector_of_Arma_State_to_nd_array_naive(const std::vector<ArmaState>& A)
+  np::ndarray copy_Arma_to_nd_array_naive(const std::vector<ArmaState>& A)
   {
 
     // construct a type for C++ double
@@ -81,26 +81,26 @@ namespace StateBindings {
     namespace np = StateBindings::np;
 
 
-    np::ndarray vector_of_arma_mat_to_nd_array_naive(const std::vector<arma::mat>& A)
+    np::ndarray copy_to_nd_array(const std::vector<arma::mat>& A)
     {
-      return vector_of_Arma_State_to_nd_array_naive<arma::mat>(A);
+      return copy_Arma_to_nd_array_naive<arma::mat>(A);
     }
 
-    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::ExtendedSpaceState>& vds)
+    np::ndarray copy_to_nd_array(const std::vector<DS::ExtendedSpaceState>& vds)
     {
-      return vector_of_Arma_State_to_nd_array_naive<DS::ExtendedSpaceState>(vds);
+      return copy_Arma_to_nd_array_naive<DS::ExtendedSpaceState>(vds);
     }
 
-    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::PhaseSpaceState>& vds)
+    np::ndarray copy_to_nd_array(const std::vector<DS::PhaseSpaceState>& vds)
     {
-      return vector_of_Arma_State_to_nd_array_naive<DS::PhaseSpaceState>(vds);
+      return copy_Arma_to_nd_array_naive<DS::PhaseSpaceState>(vds);
     }
 
 
     np::ndarray iterable_to_ndarray_for_testing(const p::object& python_iterable)
     {
       const auto helper_vector = iterable_to_vector_of_arma_mat(python_iterable);
-      return vector_of_arma_mat_to_nd_array_naive(helper_vector);
+      return copy_to_nd_array(helper_vector);
     }
 
     /*********************

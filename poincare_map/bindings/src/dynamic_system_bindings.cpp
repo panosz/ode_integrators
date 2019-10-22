@@ -52,7 +52,7 @@ namespace{
                                                           options);
 
           return StateBindings::ArmaSB::
-                vector_of_arma_dynamic_state_to_nd_array_naive(orbit);
+                copy_to_nd_array(orbit);
         }
 
   };
