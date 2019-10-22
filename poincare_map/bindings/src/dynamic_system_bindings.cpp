@@ -1,4 +1,5 @@
 #include "dynamic_system_bindings.hpp"
+#include "integration_utilities.hpp"
 #include "action_integration.hpp"
 #include "ActionIntegrationResultDecorator.hpp"
 #include "hamiltonians_bindings.hpp"
@@ -15,6 +16,29 @@ namespace{
         DS::ActionDynamicSystem<Hamiltonian> action_system_{};
         DS::UnperturbedDynamicSystem<Hamiltonian> unperturbed_system_{};
         using HDec = HamiltoniansBindings::Decorator<Hamiltonian>;
+
+        auto follow_orbit(const np::ndarray& ndar,
+                             double integration_time,
+                             IntegrationOptions options) const
+        {
+          const auto init_s = StateBindings::ndarray_to_phase_space_state(ndar);
+
+          auto orbit = make_ParticleOrbit(unperturbed_system_,
+                                          init_s,
+                                          integration_time,
+                                          options);
+
+          std::vector<double> time{};
+          std::vector<DS::PhaseSpaceState> positions{};
+          for (const auto & p_t : orbit.time_range())
+          {
+            auto const &[pos, t] = p_t;
+            positions.push_back(pos);
+            time.push_back(t);
+          }
+
+          return std::make_pair(time, positions);
+        }
 
     public:
         explicit DynamicSystem(double mass):
@@ -54,6 +78,21 @@ namespace{
           return StateBindings::ArmaSB::
                 copy_to_nd_array(orbit);
         }
+
+        np::ndarray
+          orbit(const np::ndarray& starting_point,
+                double integration_time,
+                IntegrationOptions options) const
+          {
+            const auto [time, vector] = follow_orbit(starting_point,
+                                                     integration_time,
+                                                     options);
+
+            return StateBindings::copy_to_nd_array(time);
+          }
+
+
+
 
   };
 
@@ -134,7 +173,12 @@ void export_dynamic_system(const char* system_name,
            (p::arg("s"),
             p::arg("time"),
             p::arg("options")),
-           closed_orbit_docstring);
+           closed_orbit_docstring)
+      .def("orbit",
+           &DSH::orbit,
+           (p::arg("s"),
+            p::arg("time"),
+            p::arg("options")));
 
 }
 
