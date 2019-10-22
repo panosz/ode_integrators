@@ -16,8 +16,9 @@ namespace np = boost::python::numpy;
 BOOST_PYTHON_MODULE(action_integration_ext)
 {
   np::initialize();  // have to put this in any module that uses Boost.NumPy
-  export_args_to_nd_array();
-  export_args_to_Hessian();
+  StateBindings::export_args_to_nd_array();
+  StateBindings::export_args_to_Hessian();
+
   IntegrationOptionsBindings::export_IntegrationOptions();
   ActionIntegrationBindings::export_ActionIntegrationResultDecorator();
   StateBindings::ArmaSB::export_iterable_to_ndarray_for_testing();

@@ -5,9 +5,6 @@
 #include "hamiltonian_dynamic_system.hpp"
 
 
-void export_args_to_nd_array();
-void export_args_to_Hessian();
-
 namespace StateBindings {
 
   namespace p = boost::python;
@@ -17,12 +14,21 @@ namespace StateBindings {
 
   np::ndarray args_to_nd_array(double, double, double);
   np::ndarray args_to_Hessian(double xx, double xy, double yy);
+  void export_args_to_nd_array();
+  void export_args_to_Hessian();
+
 
   namespace ArmaSB{
-  np::ndarray vector_of_arma_mat_to_nd_array_naive(const std::vector<arma::mat>& A);
-  np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::ExtendedSpaceState>& vds);
-  np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::PhaseSpaceState>& vds);
-  void export_iterable_to_ndarray_for_testing();
+
+
+    np::ndarray vector_of_arma_mat_to_nd_array_naive(const std::vector<arma::mat>& A);
+
+    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::ExtendedSpaceState>& vds);
+
+    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::PhaseSpaceState>& vds);
+
+    void export_iterable_to_ndarray_for_testing();
+
 
   }
 }

@@ -83,18 +83,16 @@ namespace StateBindings {
     return args_to_2_by_2_array(xx,xy,xy,yy);
   }
 
+  // export bindings
+  void export_args_to_nd_array()
+  {
+    p::def("args_to_array", StateBindings::args_to_nd_array);
+  }
+  void export_args_to_Hessian()
+  {
+    p::def("args_to_Hessian", StateBindings::args_to_Hessian);
+  }
 }
 
 
-// export bindings
 
-namespace p = boost::python;
-namespace np = boost::python::numpy;
-void export_args_to_nd_array()
-{
-  p::def("args_to_array", StateBindings::args_to_nd_array);
-}
-void export_args_to_Hessian()
-{
-  p::def("args_to_Hessian", StateBindings::args_to_Hessian);
-}
