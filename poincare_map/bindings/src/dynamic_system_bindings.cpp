@@ -1,8 +1,10 @@
+#include <boost/python/tuple.hpp>
 #include "dynamic_system_bindings.hpp"
 #include "integration_utilities.hpp"
 #include "action_integration.hpp"
 #include "ActionIntegrationResultDecorator.hpp"
 #include "hamiltonians_bindings.hpp"
+
 
 namespace{
   namespace p = boost::python;
@@ -37,7 +39,7 @@ namespace{
             time.push_back(t);
           }
 
-          return std::make_pair(time, positions);
+          return std::make_pair(positions, time);
         }
 
     public:
@@ -79,16 +81,17 @@ namespace{
                 copy_to_nd_array(orbit);
         }
 
-        np::ndarray
+        p::tuple
           orbit(const np::ndarray& starting_point,
                 double integration_time,
                 IntegrationOptions options) const
           {
-            const auto [time, vector] = follow_orbit(starting_point,
+            const auto [vector, time] = follow_orbit(starting_point,
                                                      integration_time,
                                                      options);
 
-            return StateBindings::copy_to_nd_array(time);
+            return p::make_tuple(StateBindings::ArmaSB::copy_to_nd_array(vector),
+                                 StateBindings::copy_to_nd_array(time));
           }
 
 

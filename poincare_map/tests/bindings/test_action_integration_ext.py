@@ -117,9 +117,11 @@ def test_following_orbit(s):
 
     dynamic_system = ai.PendulumDynamicSystem(mass)
 
-    t = dynamic_system.orbit(s=s,
-                             time=integration_time,
-                             options=options)
+    orbit, t = dynamic_system.orbit(s=s,
+                                    time=integration_time,
+                                    options=options)
+
+    assert orbit.shape[1] == 4
 
     nt.assert_allclose(actual=t[-1], desired=integration_time)
 
