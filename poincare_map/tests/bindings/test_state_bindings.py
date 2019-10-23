@@ -16,8 +16,15 @@ def test_args_to_Hessian():
     nt.assert_array_equal(result, desired)
 
 
-def test_iterable_to_ndarray_for_testing():
+def test_arma_mat_copying():
     input = [[1, 2, 3], [2, 3, 4]]
     desired = np.array(input)
-    actual = ai.iterable_to_ndarray_for_testing(input)
+    actual = ai.iterable_2D_to_ndarray(input)
+    nt.assert_allclose(actual=actual, desired=desired, rtol=1e-12)
+
+
+def test_std_vector_double_copying():
+    input = [1, 2, 3, 2, 3, 4]
+    desired = np.array(input)
+    actual = ai.iterable_1D_to_ndarray(input)
     nt.assert_allclose(actual=actual, desired=desired, rtol=1e-12)

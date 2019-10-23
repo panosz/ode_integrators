@@ -106,32 +106,71 @@ def test_action_integration(s):
     options = ai.IntegrationOptions(**option_dict)
     mass = HO_mass
     anal_ho = AnalyticHO(mass)
-    numer_ho = ai.integrate_E_H_O(s,
-                                  mass=mass,
-                                  integration_time=1000,
-                                  integration_options=options)
-    result = numer_ho.hessian()
+
+    ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
+    ho_action_integrals = ho_dynamic_system.action_integrals(s=s,
+                                                             time=1000,
+                                                             options=options)
+
+    result = ho_action_integrals.hessian()
     desired = anal_ho.hessian(s)
 
     nt.assert_allclose(result, desired, atol=1e-10, rtol=1e-10)
 
 
 @pytest.mark.parametrize("s", list_of_HO_points)
-def test_orbit_integration(s):
-    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-4}
+def test_orbit_closes(s):
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
     mass = HO_mass
 
-    a = ai.closed_pendulum_orbit(s,
-                                 mass=mass,
-                                 integration_time=10000,
-                                 integration_options=options)
+    dynamic_system = ai.PendulumDynamicSystem(mass)
+
+    a = dynamic_system.closed_orbit(s=s,
+                                    time=1000,
+                                    options=options)
 
     assert a.shape[1] == 4
 
     nt.assert_allclose(s[[0, 2]], a[-1, [0, 2]], atol=1e-10, rtol=1e-10)
 
 
-if __name__ == "__main__":
-    for p in list_of_HO_points:
-        print(f"Energy of point{p} is {AnalyticPendulum(HO_mass).value(p)}")
+@pytest.mark.parametrize("s", list_of_HO_points)
+def test_following_orbit(s):
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    options = ai.IntegrationOptions(**option_dict)
+    mass = 1.0
+    integration_time = 100
+
+    dynamic_system = ai.PendulumDynamicSystem(mass)
+
+    orbit, t = dynamic_system.orbit(s=s,
+                                    time=integration_time,
+                                    options=options)
+
+    assert orbit.shape[1] == 4
+
+    nt.assert_allclose(actual=t[-1], desired=integration_time)
+
+
+@pytest.mark.parametrize("s", list_of_HO_points)
+def test_orbit_energy_is_const(s):
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    options = ai.IntegrationOptions(**option_dict)
+    mass = 1.0
+
+    dynamic_system = ai.PendulumDynamicSystem(mass)
+
+    hamiltonian = dynamic_system.hamiltonian
+
+    initial_energy = hamiltonian.value(s)
+
+    a = dynamic_system.closed_orbit(s=s,
+                                    time=1000,
+                                    options=options)
+
+    orbit_energies = np.apply_along_axis(lambda x: hamiltonian.value(x),
+                                         axis=1,
+                                         arr=a)
+
+    nt.assert_allclose(actual=orbit_energies, desired=initial_energy)

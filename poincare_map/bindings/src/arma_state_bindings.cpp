@@ -1,5 +1,6 @@
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
+#include <boost/range/algorithm/copy.hpp>
 #include <armadillo>
 #include <iostream>
 #include "state_bindings.hpp"
@@ -36,7 +37,7 @@ namespace{
 
 
   template<typename ArmaState>
-  np::ndarray vector_of_Arma_State_to_nd_array_naive(const std::vector<ArmaState>& A)
+  np::ndarray copy_Arma_to_nd_array_naive(const std::vector<ArmaState>& A)
   {
 
     // construct a type for C++ double
@@ -76,41 +77,110 @@ namespace{
 
 namespace StateBindings {
 
+  np::ndarray copy_to_nd_array(const std::vector<double>& vect)
+  {
+    // construct a type for C++ double
+    const np::dtype dtype = np::dtype::get_builtin<double>();
+    const p::tuple shape = p::make_tuple(vect.size());
+
+    //construct uninitialized array
+    np::ndarray arr = np::empty(shape, dtype);
+
+    boost::range::copy(vect,
+        reinterpret_cast<double*>(arr.get_data()));
+
+    return arr;
+  }
+
+  namespace Testing
+  {
+    namespace p = StateBindings::p;
+    namespace np = StateBindings::np;
+      np::ndarray iterable_1D_to_ndarray(const p::object& python_iterable)
+      {
+        const auto helper_vector = iterable_to_vector_double(python_iterable);
+        return copy_to_nd_array(helper_vector);
+      }
+
+      const char* iterable_1D_to_ndarray_doc =
+               """iterable_1D_to_ndarray(iterable)\n"
+               "create a 1D ndarray from 'iterable' via intermediate construction\n"
+               "of an 'std::vector<double>' instance.\n"
+               "To be used to test copying from and to std::vector\n"
+               "\n"
+               "Parameters\n"
+               "----------\n"
+               "iterable: object, iterable\n"
+               "\t must be an object convertible to a 1D array\n"
+               "\t i.e. an iterable of doubles\n"
+               "Retruns\n"
+               "-------\n"
+               "ndarray\n"
+               """";
+  }
+
+
   namespace ArmaSB {
     namespace p = StateBindings::p;
     namespace np = StateBindings::np;
 
 
-    np::ndarray vector_of_arma_mat_to_nd_array_naive(const std::vector<arma::mat>& A)
+    np::ndarray copy_to_nd_array(const std::vector<arma::mat>& A)
     {
-      return vector_of_Arma_State_to_nd_array_naive<arma::mat>(A);
+      return copy_Arma_to_nd_array_naive<arma::mat>(A);
     }
 
-    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::ExtendedSpaceState>& vds)
+    np::ndarray copy_to_nd_array(const std::vector<DS::ExtendedSpaceState>& vds)
     {
-      return vector_of_Arma_State_to_nd_array_naive<DS::ExtendedSpaceState>(vds);
+      return copy_Arma_to_nd_array_naive<DS::ExtendedSpaceState>(vds);
     }
 
-    np::ndarray vector_of_arma_dynamic_state_to_nd_array_naive(const std::vector<DS::PhaseSpaceState>& vds)
+    np::ndarray copy_to_nd_array(const std::vector<DS::PhaseSpaceState>& vds)
     {
-      return vector_of_Arma_State_to_nd_array_naive<DS::PhaseSpaceState>(vds);
+      return copy_Arma_to_nd_array_naive<DS::PhaseSpaceState>(vds);
     }
 
 
-    np::ndarray iterable_to_ndarray_for_testing(const p::object& python_iterable)
+    namespace Testing
     {
-      const auto helper_vector = iterable_to_vector_of_arma_mat(python_iterable);
-      return vector_of_arma_mat_to_nd_array_naive(helper_vector);
+      np::ndarray iterable_2D_to_ndarray(const ArmaSB::p::object& python_iterable)
+      {
+        const auto helper_vector = iterable_to_vector_of_arma_mat(python_iterable);
+        return copy_to_nd_array(helper_vector);
+      }
+
+      const char* iterable_2D_to_ndarray_doc =
+               """iterable_2D_to_ndarray(iterable)\n"
+               "create a 2D ndarray from 'iterable' via intermediate construction\n"
+               "of an 'Arma::mat' instance.\n"
+               "To be used to test copying from and to Arma::mat\n"
+               "\n"
+               "Parameters\n"
+               "----------\n"
+               "iterable: object, iterable\n"
+               "\t must be an object convertible to a 2D array\n"
+               "\t i.e. an iterable of same length iterables\n"
+               "Retruns\n"
+               "-------\n"
+               "ndarray\n"
+               """";
     }
 
-    /*********************
-    *  export bindings  *
-    *********************/
 
-    void export_iterable_to_ndarray_for_testing()
-    {
-      p::def("iterable_to_ndarray_for_testing", iterable_to_ndarray_for_testing);
-    }
+  }
 
+  void export_methods_for_testing()
+  {
+    p::def("iterable_2D_to_ndarray",
+            ArmaSB::Testing::iterable_2D_to_ndarray,
+            p::args("iterable"),
+            ArmaSB::Testing::iterable_2D_to_ndarray_doc
+            );
+
+    p::def("iterable_1D_to_ndarray",
+            Testing::iterable_1D_to_ndarray,
+            p::args("iterable"),
+            Testing::iterable_1D_to_ndarray_doc
+            );
   }
 }
