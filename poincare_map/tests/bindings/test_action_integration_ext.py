@@ -174,3 +174,53 @@ def test_orbit_energy_is_const(s):
                                          arr=a)
 
     nt.assert_allclose(actual=orbit_energies, desired=initial_energy)
+
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
+    def wrap_2pi(x):
+        """
+        maps number periodically on the range [0,2*pi)
+        :param x: scalar or type convertible to numpy.array
+        :return: scalar or numpy.array
+        eg.
+
+        >>> wrap_2pi([0, np.pi, 2 * np.pi])
+        array([0.        , 3.14159265, 0.        ])
+
+        >>> wrap_2pi(7)
+        0.7168146928204138
+
+        >>> wrap_2pi([3,4,5,6,7,8,9])
+        array([3.        , 4.        , 5.        , 6.        , 0.71681469,
+           1.71681469, 2.71681469])
+
+        """
+        return x - 2 * np.pi * np.floor_divide(x, 2 * np.pi)
+
+
+
+    for p in list_of_HO_points:
+        print(f"Energy of point{p} is {AnalyticPendulum(HO_mass).value(p)}")
+
+    option_dict = {'abs_err': 1e-13, 'rel_err': 1e-13, 'init_time_step': 1e-2}
+    options = ai.IntegrationOptions(**option_dict)
+    bad_point = list_of_HO_points[6]
+    mass = 1.0
+    dynamic_system = ai.PendulumDynamicSystem(mass)
+    hamiltonian = dynamic_system.hamiltonian
+    integration_time = 100
+
+    print(f'bad_point = {bad_point}')
+    print(dynamic_system.hamiltonian.value(bad_point))
+
+    orbit, t = dynamic_system.orbit(s=bad_point,
+                                    time=integration_time,
+                                    options=options)
+
+    orbit_energies = np.apply_along_axis(lambda x: hamiltonian.value(x),
+                                         axis=1,
+                                         arr=orbit)
+    plt.plot(wrap_2pi(orbit[:, 1]), orbit[:, 0], 'k', markersize=.1)
+    plt.show()

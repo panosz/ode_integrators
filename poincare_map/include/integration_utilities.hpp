@@ -376,7 +376,7 @@ namespace
 
       auto orbit_range = orbit1.range();
 
-      const auto closeness_tol =  integrationOptions.abs_err * 100;
+      const auto closeness_tol =  integrationOptions.abs_err * 1000;
 
       auto close_enough_to_initial_point =
         OrbitClosingChecker(first_point, closeness_tol);
