@@ -46,6 +46,12 @@ struct Surface {
       else return PanosUtilities::wrap_minus_pi_pi(absolute_distance);
 
     }
+    template <typename State>
+    double operator()(const State& s) const noexcept
+    {
+      return eval(s);
+    }
+
 };
 
 template<typename System>

@@ -12,7 +12,7 @@
 template<typename System>
 ActionIntegrationResult
 action_integration (System sys,
-                    const typename System::StateType& first_point,
+                    const typename DS::ExtendedSpaceState& first_point,
                     double max_time,
                     IntegrationOptions integrationOptions)
 {
