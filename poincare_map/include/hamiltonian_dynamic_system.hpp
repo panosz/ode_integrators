@@ -6,7 +6,6 @@
 #define ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
 #include <cmath>
 #include "fields_and_brackets.hpp"
-#include <boost/math/constants/constants.hpp>
 #include "phase_space_state_types.hpp"
 
 namespace DS

@@ -7,11 +7,9 @@
 
 #include <boost/numeric/odeint.hpp>
 #include <boost/math/constants/constants.hpp>
-#include <boost/range/iterator_range.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
 #include <myUtilities/zero_crossing.hpp>
-#include <myUtilities/wrap.hpp>
 
 #include "system_and_poincare_surface.hpp"
 #include "samplingCollections.hpp"
