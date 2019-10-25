@@ -5,18 +5,12 @@
 #ifndef ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
 #define ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
 #include <cmath>
-#include "armadillo_state.hpp"
-#include "system_and_poincare_surface.hpp"
 #include "fields_and_brackets.hpp"
 #include <boost/math/constants/constants.hpp>
+#include "phase_space_state_types.hpp"
 
 namespace DS
 {
-
-    using PhaseSpaceState = armadillo_state<PHASE_SPACE_VARIABLES>;
-    using ExtendedSpaceState = armadillo_state<EXTENDED_SPACE_VARIABLES>;
-
-    ExtendedSpaceState phase_to_extended_space_state(const PhaseSpaceState &pss);
 
     class UnperturbedExtendedOscillatorHamiltonian {
 

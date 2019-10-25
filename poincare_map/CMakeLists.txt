@@ -34,7 +34,8 @@ add_library(poincare_map SHARED include/version.hpp
             include/action_integration.hpp 
             src/action_integration.cpp
             src/integration_options.cpp
-            src/orbit_closing_check.cpp)
+            src/orbit_closing_check.cpp
+            src/phase_space_types.cpp)
 
 target_compile_options(poincare_map PRIVATE
                       -Wall 
