@@ -27,7 +27,5 @@ BOOST_PYTHON_MODULE(action_integration_ext)
 
   DynamicSystemBindings::export_dynamic_systems();
 
-
-
 }
 
