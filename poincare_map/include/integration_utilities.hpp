@@ -16,6 +16,8 @@
 #include "system_and_poincare_surface.hpp"
 #include "samplingCollections.hpp"
 
+#include "integration_options.hpp"
+
 using namespace boost::numeric::odeint;
 
 template<typename System>
@@ -28,19 +30,6 @@ using ErrorStepperType = runge_kutta_cash_karp54<typename System::StateType,
 template<typename System>
 using ControlledStepperType = controlled_runge_kutta<ErrorStepperType<System> >;
 
-
-struct IntegrationOptions
-{
-    double abs_err;
-    double rel_err;
-    double dt;
-
-    IntegrationOptions (double abs_error,
-                        double rel_error,
-                        double init_time_step)
-        : abs_err{abs_error}, rel_err{rel_error}, dt{init_time_step}
-    { }
-};
 
 
 template<typename System>

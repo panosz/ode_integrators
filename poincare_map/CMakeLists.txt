@@ -10,38 +10,66 @@ include_directories(SYSTEM ${ARMADILLO_INCLUDE_DIRS} )
 configure_file ( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.hpp.in"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/version.hpp")
 
-add_library(poincare_map SHARED include/version.hpp src/input_output/prepare.cpp
-        include/input_output/prepare.hpp src/input_output/text_file_io.cpp
-        include/input_output/text_file_io.hpp src/samplingCollections.cpp include/samplingCollections.hpp
-        src/system_and_poincare_surface.cpp include/system_and_poincare_surface.hpp
-        src/integration_utilities.cpp include/integration_utilities.hpp
-        include/armadillo_state.hpp src/armadillo_state.cpp src/input_output/hdf5_io.cpp include/input_output/hdf5_io.hpp
-        src/hamiltonian_dynamic_system.cpp include/hamiltonian_dynamic_system.hpp src/fields_and_brackets.cpp
-        include/fields_and_brackets.hpp include/action_integration_result.hpp src/action_integration_result.cpp
-        include/action_integration.hpp src/action_integration.cpp)
+add_library(poincare_map SHARED include/version.hpp 
+            src/input_output/prepare.cpp
+            include/input_output/prepare.hpp 
+            src/input_output/text_file_io.cpp
+            include/input_output/text_file_io.hpp 
+            src/samplingCollections.cpp 
+            include/samplingCollections.hpp
+            src/system_and_poincare_surface.cpp 
+            include/system_and_poincare_surface.hpp
+            src/integration_utilities.cpp 
+            include/integration_utilities.hpp
+            include/armadillo_state.hpp 
+            src/armadillo_state.cpp 
+            src/input_output/hdf5_io.cpp 
+            include/input_output/hdf5_io.hpp
+            src/hamiltonian_dynamic_system.cpp 
+            include/hamiltonian_dynamic_system.hpp 
+            src/fields_and_brackets.cpp
+            include/fields_and_brackets.hpp 
+            include/action_integration_result.hpp 
+            src/action_integration_result.cpp
+            include/action_integration.hpp 
+            src/action_integration.cpp
+            src/integration_options.cpp)
 
 target_compile_options(poincare_map PRIVATE
-        -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
-        -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
-        -Wconversion -Wsign-conversion -Wmisleading-indentation
-        -Wduplicated-cond -Wduplicated-branches -Wlogical-op
-        -Wnull-dereference -Wuseless-cast -Wdouble-promotion
-        -Wformat=2
+                      -Wall 
+                      -Wextra 
+                      -Wshadow 
+                      -Wnon-virtual-dtor 
+                      -pedantic
+                      -Weffc++ 
+                      -Wold-style-cast 
+                      -Wcast-align 
+                      -Wunused 
+                      -Woverloaded-virtual
+                      -Wconversion -Wsign-conversion 
+                      -Wmisleading-indentation
+                      -Wduplicated-cond 
+                      -Wduplicated-branches 
+                      -Wlogical-op
+                      -Wnull-dereference 
+                      -Wuseless-cast 
+                      -Wdouble-promotion
+                      -Wformat=2
 
-        $<$<CONFIG:Release>:
-        -O3
-        -march=native
-        >
-        )
+                      $<$<CONFIG:Release>:
+                      -O3
+                      -march=native
+                      >
+                      )
 
 
-target_include_directories(
-        poincare_map PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include/poincare_map>
-        PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+  target_include_directories(
+          poincare_map PUBLIC
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+          $<INSTALL_INTERFACE:include/poincare_map>
+          PRIVATE
+          ${CMAKE_CURRENT_SOURCE_DIR}/src
+  )
 
 
 
@@ -63,17 +91,31 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTA
 add_executable(test_E_H_O test_E_H_O.cpp)
 target_link_libraries(test_E_H_O PUBLIC poincare_map)
 target_compile_options(test_E_H_O PRIVATE
-        -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
-        -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
-        -Wconversion -Wsign-conversion -Wmisleading-indentation
-        -Wduplicated-cond -Wduplicated-branches -Wlogical-op
-        -Wnull-dereference -Wuseless-cast -Wdouble-promotion
-        -Wformat=2
+                        -Wall 
+                        -Wextra 
+                        -Wshadow 
+                        -Wnon-virtual-dtor 
+                        -pedantic
+                        -Weffc++ 
+                        -Wold-style-cast 
+                        -Wcast-align 
+                        -Wunused 
+                        -Woverloaded-virtual
+                        -Wconversion 
+                        -Wsign-conversion 
+                        -Wmisleading-indentation
+                        -Wduplicated-cond 
+                        -Wduplicated-branches 
+                        -Wlogical-op
+                        -Wnull-dereference 
+                        -Wuseless-cast 
+                        -Wdouble-promotion
+                        -Wformat=2
 
-        $<$<CONFIG:Release>:
-        -O3
-        -march=native
-        >
-        )
+                        $<$<CONFIG:Release>:
+                        -O3
+                        -march=native
+                        >
+                        )
 
-      add_subdirectory(bindings)
+add_subdirectory(bindings)

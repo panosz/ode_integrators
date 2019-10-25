@@ -102,7 +102,7 @@ HO_mass = 1.0
 
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_action_integration(s):
-    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
     mass = HO_mass
     anal_ho = AnalyticHO(mass)
@@ -120,7 +120,7 @@ def test_action_integration(s):
 
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_orbit_closes(s):
-    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
     mass = HO_mass
 
@@ -137,10 +137,10 @@ def test_orbit_closes(s):
 
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_following_orbit(s):
-    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
     mass = 1.0
-    integration_time = 100
+    integration_time = 10
 
     dynamic_system = ai.PendulumDynamicSystem(mass)
 
@@ -155,7 +155,7 @@ def test_following_orbit(s):
 
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_orbit_energy_is_const(s):
-    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'init_time_step': 1e-2}
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
     mass = 1.0
 
@@ -199,12 +199,10 @@ if __name__ == "__main__":
         """
         return x - 2 * np.pi * np.floor_divide(x, 2 * np.pi)
 
-
-
     for p in list_of_HO_points:
         print(f"Energy of point{p} is {AnalyticPendulum(HO_mass).value(p)}")
 
-    option_dict = {'abs_err': 1e-13, 'rel_err': 1e-13, 'init_time_step': 1e-2}
+    option_dict = {'abs_err': 1e-13, 'rel_err': 1e-13, 'dt': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
     bad_point = list_of_HO_points[6]
     mass = 1.0
