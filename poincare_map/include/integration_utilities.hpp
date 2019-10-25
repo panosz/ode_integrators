@@ -16,6 +16,9 @@
 #include "system_and_poincare_surface.hpp"
 #include "samplingCollections.hpp"
 
+#include "integration_options.hpp"
+#include "orbit_closing_check.hpp"
+
 using namespace boost::numeric::odeint;
 
 template<typename System>
@@ -28,19 +31,6 @@ using ErrorStepperType = runge_kutta_cash_karp54<typename System::StateType,
 template<typename System>
 using ControlledStepperType = controlled_runge_kutta<ErrorStepperType<System> >;
 
-
-struct IntegrationOptions
-{
-    double abs_err;
-    double rel_err;
-    double dt;
-
-    IntegrationOptions (double abs_error,
-                        double rel_error,
-                        double init_time_step)
-        : abs_err{abs_error}, rel_err{rel_error}, dt{init_time_step}
-    { }
-};
 
 
 template<typename System>
@@ -324,39 +314,7 @@ namespace
       return make_system_and_poincare_surface(sys, my_poincare_surface);
     }
 
-    bool almost_equal(double x, double y, double tol) noexcept
-    {
-      return std::abs(x - y) < tol;
-    }
-
-    class OrbitClosingChecker
-    {
-      /// callable. When called as occ(point), returns true,
-      /// when the p coordinate of 'point' is close to the
-      /// p coordinate of 'p_init', the point that was used
-      /// to initialize occ.
-
-      private:
-       double p_{};
-       double tol_{};
-
-      public:
-       template< typename PointType>
-       OrbitClosingChecker(const PointType& point, double tol)
-         :p_{point[static_cast<unsigned>(CoordinateTag::p)]},
-          tol_{tol}
-       {}
-
-       template <typename PointType>
-       bool operator()(const PointType& point) const noexcept
-       {
-         const auto p = point[static_cast<unsigned>(CoordinateTag::p)];
-         return almost_equal(p, p_, tol_);
-       }
-
-    };
-
-    template<typename System, typename OutputContainer>
+        template<typename System, typename OutputContainer>
     auto
     integrate_along_closed_orbit_impl (System sys,
                                        const typename System::StateType&
@@ -376,10 +334,8 @@ namespace
 
       auto orbit_range = orbit1.range();
 
-      const auto closeness_tol =  integrationOptions.abs_err * 1000;
-
       auto close_enough_to_initial_point =
-        OrbitClosingChecker(first_point, closeness_tol);
+        OrbitClosing::make_P_Checker(first_point, integrationOptions);
 
       const auto begin_range = orbit_range.begin();
       const auto end_range = orbit_range.end();

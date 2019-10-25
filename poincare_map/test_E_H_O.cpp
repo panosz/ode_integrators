@@ -168,7 +168,7 @@ int main (int argc, char *argv[])
 
   std::cout << "Init States:\n" << init_states << '\n';
 
-  const auto options = IntegrationOptions(1e-12, 1e-12, 1e-5);
+  const auto options = IntegrationOptions{1e-12, 1e-12, 1e-5};
 
   const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(1.4);
 
