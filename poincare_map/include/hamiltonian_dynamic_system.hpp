@@ -17,80 +17,25 @@ namespace DS
       double M_;
 
      public:
-      using StateType=ExtendedSpaceState;
 
       explicit UnperturbedExtendedOscillatorHamiltonian (double M)
           : M_{M}
       { };
 
       template<typename ST>
-      double value(const ST& s) const noexcept
-      {
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-        return M_ * p * p  + F * q * q;
-      }
+      double value(const ST& s) const noexcept;
 
       template<typename ST>
-      double operator() (const ST& s) const noexcept
-      {
-        return value(s);
-      }
+      double operator() (const ST& s) const noexcept;
 
       template<typename ST>
-      FirstDerivatives first_derivatives (const ST& s) const noexcept
-      {
-        FirstDerivatives derivs{};
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        derivs.dp = 2 * M_ * p;
-        derivs.dq = 2 * F * q;
-        derivs.dF =  q * q;
-        return derivs;
-      }
+      FirstDerivatives first_derivatives (const ST& s) const noexcept;
 
       template<typename ST>
-      SecondDerivatives second_derivatives (const ST& s) const noexcept
-      {
-        SecondDerivatives second_derivs{};
-
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        second_derivs.dp2 = 2 * M_;
-        second_derivs.dp_dq = 0;
-        second_derivs.dp_dF = 0;
-        second_derivs.dq2 = 2 * F;
-        second_derivs.dq_dF = 2 * q;
-        second_derivs.dF2 = 0;
-
-        return second_derivs;
-      }
+      SecondDerivatives second_derivatives (const ST& s) const noexcept;
 
       template<typename ST>
-      ThirdDerivatives third_derivatives (const ST& /*s*/) const noexcept
-      {
-        ThirdDerivatives third_derivs{};
-
-
-        third_derivs.dp3 = 0;
-        third_derivs.dp2_dq = 0;
-        third_derivs.dp2_dF = 0;
-        third_derivs.dp_dq2 = 0;
-        third_derivs.dp_dq_dF = 0;
-        third_derivs.dp_dF2 = 0;
-
-        third_derivs.dq3 = 0;
-        third_derivs.dq2_dF = 2;
-        third_derivs.dq_dF2 = 0;
-
-        third_derivs.dF3 = 0;
-
-        return third_derivs;
-      }
+      ThirdDerivatives third_derivatives (const ST& /*s*/) const noexcept;
 
       double action(const PhaseSpaceState& s) const;
 
