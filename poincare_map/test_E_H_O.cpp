@@ -20,6 +20,7 @@
 #include "hamiltonian_dynamic_system.hpp"
 #include "action_integration_result.hpp"
 #include "action_integration.hpp"
+#include "UnperturbedExtendedOscillatorHamiltonian.hpp"
 
 void print_usage_string (const std::string& program_name)
 {
