@@ -2,6 +2,7 @@
 #include <boost/python/numpy.hpp>
 #include "hamiltonians_bindings.hpp"
 #include "UnperturbedExtendedOscillatorHamiltonian.hpp"
+#include "UnperturbedExtendedPendulumHamiltonian.hpp"
 
 
 namespace p = boost::python;

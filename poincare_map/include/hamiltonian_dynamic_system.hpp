@@ -12,32 +12,6 @@ namespace DS
 {
 
 
-    class UnperturbedExtendedPendulumHamiltonian {
-
-     private:
-      double M_;
-
-     public:
-      explicit UnperturbedExtendedPendulumHamiltonian (double M)
-          : M_{M}
-      { };
-
-      template<typename ST>
-      double value(const ST& s) const noexcept;
-
-      template<typename ST>
-      double operator() (const ST& s) const;
-
-      template<typename ST>
-      FirstDerivatives first_derivatives (const ST& s) const noexcept;
-
-      template<typename ST>
-      SecondDerivatives second_derivatives (const ST& s) const noexcept;
-
-      template<typename ST>
-      ThirdDerivatives third_derivatives (const ST& s) const noexcept;
-
-    };
 
     inline double dpdt (const FirstDerivatives& dh) noexcept
     {
