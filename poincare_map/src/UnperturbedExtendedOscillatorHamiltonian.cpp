@@ -2,7 +2,7 @@
 //Created by Panagiotis Zestanakis on Nov 01, 2019
 //
 
-#include "hamiltonian_dynamic_system.hpp"
+#include "UnperturbedExtendedOscillatorHamiltonian.hpp"
 
 namespace DS
 {

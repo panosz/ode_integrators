@@ -4,6 +4,7 @@
 #include "action_integration.hpp"
 #include "ActionIntegrationResultDecorator.hpp"
 #include "hamiltonians_bindings.hpp"
+#include "UnperturbedExtendedOscillatorHamiltonian.hpp"
 
 
 namespace{

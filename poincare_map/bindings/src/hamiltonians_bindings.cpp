@@ -1,6 +1,7 @@
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
 #include "hamiltonians_bindings.hpp"
+#include "UnperturbedExtendedOscillatorHamiltonian.hpp"
 
 
 namespace p = boost::python;

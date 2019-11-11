@@ -11,46 +11,6 @@
 namespace DS
 {
 
-    class UnperturbedExtendedOscillatorHamiltonian {
-
-     private:
-      double M_;
-
-     public:
-
-      explicit UnperturbedExtendedOscillatorHamiltonian (double M)
-          : M_{M}
-      { };
-
-      template<typename ST>
-      double value(const ST& s) const noexcept;
-
-      template<typename ST>
-      double operator() (const ST& s) const noexcept;
-
-      template<typename ST>
-      FirstDerivatives first_derivatives (const ST& s) const noexcept;
-
-      template<typename ST>
-      SecondDerivatives second_derivatives (const ST& s) const noexcept;
-
-      template<typename ST>
-      ThirdDerivatives third_derivatives (const ST& /*s*/) const noexcept;
-
-      double action(const PhaseSpaceState& s) const;
-
-      double dKdJ(const PhaseSpaceState& s) const noexcept;
-
-      double dKdF(const PhaseSpaceState& s) const;
-
-      double d2KdJ2(const PhaseSpaceState& /*s*/) const noexcept;
-
-      double d2KdJdF(const PhaseSpaceState& s) const;
-
-      double d2KdF2(const PhaseSpaceState& s) const;
-
-
-    };
 
     class UnperturbedExtendedPendulumHamiltonian {
 
@@ -82,7 +42,7 @@ namespace DS
     inline double dpdt (const FirstDerivatives& dh) noexcept
     {
       return -dh.dq;
-    };
+    }
     inline double dqdt (const FirstDerivatives& dh) noexcept
     {
       return dh.dp;
