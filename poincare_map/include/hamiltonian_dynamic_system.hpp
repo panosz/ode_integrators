@@ -79,44 +79,49 @@ namespace DS
 
     };
 
+    inline double dpdt (const FirstDerivatives& dh) noexcept
+    {
+      return -dh.dq;
+    };
+    inline double dqdt (const FirstDerivatives& dh) noexcept
+    {
+      return dh.dp;
+    }
+    inline double dphidt (const FirstDerivatives& dh) noexcept
+    {
+      return dh.dF;
+    }
+
+    inline void get_time_derivatives(const FirstDerivatives& dh,
+                                    PhaseSpaceState& dsdt) noexcept
+    {
+
+      dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
+      dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
+      dsdt[static_cast<unsigned>(CoordinateTag::F)] = 0;
+      dsdt[static_cast<unsigned>(CoordinateTag::phi)] = dphidt(dh);
+    }
+
+
     template<typename UnperturbedHamiltonian>
     class UnperturbedDynamicSystem {
-
-     public:
-      using StateType = PhaseSpaceState;
 
      private:
       UnperturbedHamiltonian h_;
 
-      double dpdt (const FirstDerivatives& dh) const
-      {
-        return -dh.dq;
-      };
-      double dqdt (const FirstDerivatives& dh) const
-      {
-        return dh.dp;
-      }
-      double dphidt (const FirstDerivatives& dh) const
-      {
-        return dh.dF;
-      }
-
-
      public:
+      using StateType = PhaseSpaceState;
 
       explicit UnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
           : h_{h}
       { }
 
-      void operator() (const StateType& s, StateType& dsdt, const double /*t*/) const
+      void operator() (const PhaseSpaceState& s,
+                       PhaseSpaceState& dsdt,
+                       const double /*t*/) const
       {
-
         const auto dh = h_.first_derivatives(s);
-
-        dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
-        dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
-        dsdt[static_cast<unsigned>(CoordinateTag::F)] = 0;
-        dsdt[static_cast<unsigned>(CoordinateTag::phi)] = dphidt(dh);
+        get_time_derivatives(dh, dsdt);
       }
     };
 
