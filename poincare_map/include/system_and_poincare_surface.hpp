@@ -6,25 +6,7 @@
 #define ODE_INTEGRATORS_SYSTEM_AND_POINCARE_SURFACE_HPP
 
 #include "myUtilities/wrap.hpp"
-
-const unsigned PHASE_SPACE_VARIABLES = 4;
-const unsigned PATH_INTEGRALS = 8;
-const unsigned EXTENDED_SPACE_VARIABLES = PHASE_SPACE_VARIABLES + PATH_INTEGRALS;
-
-enum class CoordinateTag : unsigned {
-  p = 0,
-  q = 1,
-  F = 2,
-  phi = 3,
-  J = 4,
-  t = 5,
-  beta = 6,
-  gamma = 7,
-  beta1 = 8,
-  gamma1 = 9,
-  beta2 = 10,
-  gamma2 =11
-};
+#include "phase_space_description.hpp"
 
 struct Surface {
     CoordinateTag coordinate_tag;
@@ -46,6 +28,12 @@ struct Surface {
       else return PanosUtilities::wrap_minus_pi_pi(absolute_distance);
 
     }
+    template <typename State>
+    double operator()(const State& s) const noexcept
+    {
+      return eval(s);
+    }
+
 };
 
 template<typename System>

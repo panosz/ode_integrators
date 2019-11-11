@@ -5,202 +5,68 @@
 #ifndef ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
 #define ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
 #include <cmath>
-#include "armadillo_state.hpp"
-#include "system_and_poincare_surface.hpp"
 #include "fields_and_brackets.hpp"
-#include <boost/math/constants/constants.hpp>
+#include "phase_space_state_types.hpp"
 
 namespace DS
 {
 
-    using PhaseSpaceState = armadillo_state<PHASE_SPACE_VARIABLES>;
-    using ExtendedSpaceState = armadillo_state<EXTENDED_SPACE_VARIABLES>;
-
-    ExtendedSpaceState phase_to_extended_space_state(const PhaseSpaceState &pss);
-
-    class UnperturbedExtendedOscillatorHamiltonian {
-
-     private:
-      double M_;
-
-     public:
-      using StateType=ExtendedSpaceState;
-
-      explicit UnperturbedExtendedOscillatorHamiltonian (double M)
-          : M_{M}
-      { };
-
-      template<typename ST>
-      double value(const ST& s) const noexcept
-      {
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-        return M_ * p * p  + F * q * q;
-      }
-
-      template<typename ST>
-      double operator() (const ST& s) const noexcept
-      {
-        return value(s);
-      }
-
-      template<typename ST>
-      FirstDerivatives first_derivatives (const ST& s) const noexcept
-      {
-        FirstDerivatives derivs{};
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        derivs.dp = 2 * M_ * p;
-        derivs.dq = 2 * F * q;
-        derivs.dF =  q * q;
-        return derivs;
-      }
-
-      template<typename ST>
-      SecondDerivatives second_derivatives (const ST& s) const noexcept
-      {
-        SecondDerivatives second_derivs{};
-
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        second_derivs.dp2 = 2 * M_;
-        second_derivs.dp_dq = 0;
-        second_derivs.dp_dF = 0;
-        second_derivs.dq2 = 2 * F;
-        second_derivs.dq_dF = 2 * q;
-        second_derivs.dF2 = 0;
-
-        return second_derivs;
-      }
-
-      template<typename ST>
-      ThirdDerivatives third_derivatives (const ST& /*s*/) const noexcept
-      {
-        ThirdDerivatives third_derivs{};
 
 
-        third_derivs.dp3 = 0;
-        third_derivs.dp2_dq = 0;
-        third_derivs.dp2_dF = 0;
-        third_derivs.dp_dq2 = 0;
-        third_derivs.dp_dq_dF = 0;
-        third_derivs.dp_dF2 = 0;
+    inline double dpdt (const FirstDerivatives& dh) noexcept
+    {
+      return -dh.dq;
+    }
+    inline double dqdt (const FirstDerivatives& dh) noexcept
+    {
+      return dh.dp;
+    }
+    inline double dphidt (const FirstDerivatives& dh) noexcept
+    {
+      return dh.dF;
+    }
 
-        third_derivs.dq3 = 0;
-        third_derivs.dq2_dF = 2;
-        third_derivs.dq_dF2 = 0;
+    inline void get_time_derivatives(const FirstDerivatives& dh,
+                                    PhaseSpaceState& dsdt) noexcept
+    {
 
-        third_derivs.dF3 = 0;
+      dsdt[static_cast<unsigned>(CoordinateTag::p)] = dpdt(dh);
+      dsdt[static_cast<unsigned>(CoordinateTag::q)] = dqdt(dh);
+      dsdt[static_cast<unsigned>(CoordinateTag::F)] = 0;
+      dsdt[static_cast<unsigned>(CoordinateTag::phi)] = dphidt(dh);
+    }
 
-        return third_derivs;
-      }
-
-      double action(const PhaseSpaceState& s) const;
-
-      double dKdJ(const PhaseSpaceState& s) const noexcept;
-
-      double dKdF(const PhaseSpaceState& s) const;
-
-      double d2KdJ2(const PhaseSpaceState& /*s*/) const noexcept;
-
-      double d2KdJdF(const PhaseSpaceState& s) const;
-
-      double d2KdF2(const PhaseSpaceState& s) const;
-
-
-    };
-
-    class UnperturbedExtendedPendulumHamiltonian {
-
-     private:
-      double M_;
-
-     public:
-      using StateType=PhaseSpaceState;
-
-      explicit UnperturbedExtendedPendulumHamiltonian (double M)
-          : M_{M}
-      { };
-
-      template<typename ST>
-      double value(const ST& s) const noexcept
-      {
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-        return M_ * p * p / 2 - F * cos(q);
-      }
-
-      template<typename ST>
-      double operator() (const ST& s) const
-      {
-        return value(s);
-      }
-
-      template<typename ST>
-      FirstDerivatives first_derivatives (const ST& s) const noexcept
-      {
-        FirstDerivatives derivs{};
-        const auto& p = s[static_cast<unsigned>(CoordinateTag::p)];
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        derivs.dp = M_ * p;
-        derivs.dq = F * sin(q);
-        derivs.dF = -cos(q);
-        return derivs;
-      }
-
-      template<typename ST>
-      SecondDerivatives second_derivatives (const ST& s) const noexcept
-      {
-        SecondDerivatives second_derivs{};
-
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        second_derivs.dp2 = M_;
-        second_derivs.dp_dq = 0;
-        second_derivs.dp_dF = 0;
-        second_derivs.dq2 = F * cos(q);
-        second_derivs.dq_dF = sin(q);
-        second_derivs.dF2 = 0;
-
-        return second_derivs;
-      }
-
-      template<typename ST>
-      ThirdDerivatives third_derivatives (const ST& s) const noexcept
-      {
-        ThirdDerivatives third_derivs{};
-
-        const auto& q = s[static_cast<unsigned>(CoordinateTag::q)];
-        const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
-
-        third_derivs.dp3 = 0;
-        third_derivs.dp2_dq = 0;
-        third_derivs.dp2_dF = 0;
-        third_derivs.dp_dq2 = 0;
-        third_derivs.dp_dq_dF = 0;
-        third_derivs.dp_dF2 = 0;
-
-        third_derivs.dq3 = -F * sin(q);
-        third_derivs.dq2_dF = cos(q);
-        third_derivs.dq_dF2 = 0;
-
-        third_derivs.dF3 = 0;
-
-        return third_derivs;
-      }
-
-    };
 
     template<typename UnperturbedHamiltonian>
     class UnperturbedDynamicSystem {
+
+     private:
+      UnperturbedHamiltonian h_;
+
+     public:
+      using StateType = PhaseSpaceState;
+
+      explicit UnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+          : h_{h}
+      { }
+
+      void operator() (const PhaseSpaceState& s,
+                       PhaseSpaceState& dsdt,
+                       const double /*t*/) const
+      {
+        const auto dh = h_.first_derivatives(s);
+        get_time_derivatives(dh, dsdt);
+      }
+    };
+
+    template<typename UnperturbedHamiltonian>
+    UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+    {
+      return UnperturbedDynamicSystem<UnperturbedHamiltonian>(h);
+    }
+
+    template<typename UnperturbedHamiltonian>
+    class ActionDynamicSystem {
 
      public:
       using StateType = ExtendedSpaceState;
@@ -234,7 +100,7 @@ namespace DS
 
      public:
 
-      explicit UnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+      explicit ActionDynamicSystem (const UnperturbedHamiltonian& h)
           : h_{h}
       { }
 
@@ -273,9 +139,9 @@ namespace DS
     };
 
     template<typename UnperturbedHamiltonian>
-    UnperturbedDynamicSystem<UnperturbedHamiltonian> makeUnperturbedDynamicSystem (const UnperturbedHamiltonian& h)
+    ActionDynamicSystem<UnperturbedHamiltonian> makeActionDynamicSystem (const UnperturbedHamiltonian& h)
     {
-      return UnperturbedDynamicSystem<UnperturbedHamiltonian>(h);
+      return ActionDynamicSystem<UnperturbedHamiltonian>(h);
     }
 }
 #endif //ODE_INTEGRATORS_HAMILTONIAN_DYNAMIC_SYSTEM_HPP
