@@ -12,6 +12,9 @@ import action_integration_ext as ai
 _colors = ['#1b9e77', '#d95f02', '#7570b3']
 
 M = 1.
+dynamic_system = ai.PendulumDynamicSystem(M)
+option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
+options = ai.IntegrationOptions(**option_dict)
 
 
 def get_p(f, energy):
@@ -33,8 +36,10 @@ def points_on_energy_surface(*, f, energy):
 @np.vectorize
 def g_of_f(f, energy):
     s = points_on_energy_surface(f=f, energy=energy)
-    numer_ho = ai.integrate_E_Pendulum(s, mass=M)
-    return numer_ho.g_factor()
+    action_integrals = dynamic_system.action_integrals(s=s,
+                                                       time=1000,
+                                                       options=options)
+    return action_integrals.g_factor()
 
 
 def initial_points_and_g_on_energy_surface(energy, n_points, f_window):
@@ -74,7 +79,9 @@ def resonances_on_energy_surface(energy, ratio_set, f_window, n_samples=15):
         f_values = vc.solutions
         init_points = [points_on_energy_surface(f=f, energy=energy)
                        for f in f_values]
-        action_integrals = [ai.integrate_E_Pendulum(s, mass=M)
+        action_integrals = [dynamic_system.action_integrals(s=s,
+                                                            time=1000,
+                                                            options=options)
                             for s in init_points]
 
         output_list.append((level, f_values, init_points, action_integrals))
@@ -255,6 +262,8 @@ if __name__ == "__main__":
                                                   ratio_list,
                                                   params['f_window'],
                                                   n_samples=15)
+    pprint([[pos_int.hessian() for pos_int in action_integrals]
+           for action_integrals in resonance_data['action_integrals'].tolist()])
 
     ax2 = plot_resonances(ax, resonance_data)
 
