@@ -45,6 +45,9 @@ namespace DS
 
       double d2KdF2(const PhaseSpaceState& s) const;
 
+      PhaseSpaceState propagate(const PhaseSpaceState& s,
+                                double dt) const;
+
 
     };
 }

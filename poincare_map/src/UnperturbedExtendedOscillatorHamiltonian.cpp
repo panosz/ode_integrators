@@ -145,4 +145,47 @@ namespace DS
       return -J * std::sqrt(M_ / F) / (2 * F);
     }
 
+    PhaseSpaceState UE_O::propagate(const PhaseSpaceState& s,
+                                    double dt) const
+
+    {
+      PhaseSpaceState propagated{};
+      using namespace std;
+
+      const auto& p0 = s[static_cast<unsigned>(CoordinateTag::p)];
+      const auto& q0 = s[static_cast<unsigned>(CoordinateTag::q)];
+      const auto& F = s[static_cast<unsigned>(CoordinateTag::F)];
+      const auto& phi0 = s[static_cast<unsigned>(CoordinateTag::phi)];
+
+      const double E = value(s);
+      const double A = sqrt(E);
+      const double sqrtF = sqrt(F);
+      const double sqrtM = sqrt(M_);
+
+      const double theta_0 = atan2(sqrtF * q0,
+                                        sqrtM * p0);
+
+      const double omega = dKdJ(s);
+      const double omega_phi = dKdF(s);
+      const double propagation_phase =  omega * dt + theta_0;
+
+      const double p = A / sqrtM * cos(propagation_phase);
+      const double q = A / sqrtF * sin(propagation_phase);
+
+      const double phi = omega_phi * dt
+                         - 0.5 * omega_phi * sin(2 * (propagation_phase))
+                         + phi0;
+
+      propagated[static_cast<unsigned>(CoordinateTag::p)] = p;
+      propagated[static_cast<unsigned>(CoordinateTag::q)] = q;
+      propagated[static_cast<unsigned>(CoordinateTag::F)] = F;
+      propagated[static_cast<unsigned>(CoordinateTag::phi)] = phi;
+
+      return propagated;
+
+    }
+
+
+
+
 }
