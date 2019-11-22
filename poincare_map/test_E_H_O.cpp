@@ -173,6 +173,40 @@ int main (int argc, char *argv[])
 
   const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(1.4);
 
+  { // Uncomment this block, to calculate and print out
+    // an orbit at specific times
+    auto my_phase_space_sys = DS::makeUnperturbedDynamicSystem(myHam);
+    std::cout << "\nDemonstrate integration at specific times\n";
+    std::cout << "-----------------------------------------\n";
+
+    const auto init_state = init_states[10];
+
+    std::cout << "init_state = " << init_state;
+
+    const std::vector<double> times{0.01,0.02,0.03,0.04};
+    const auto points_at_times = orbit_points_at_times(
+                                                my_phase_space_sys,
+                                                init_state,
+                                                times,
+                                                options);
+
+    for (const auto & point : points_at_times)
+      std::cout<<point<<'\n';
+
+    std::vector<DS::PhaseSpaceState> analytic_points_at_times{};
+    for (const auto& t : times)
+      analytic_points_at_times.push_back(myHam.propagate(init_state, t));
+
+
+    std::cout<< "analytic calculation of positions at specific times:"<<'\n';
+    for (const auto & point : analytic_points_at_times)
+      std::cout<<point<<'\n';
+
+
+
+    std::cout << "\nEnd of Demonstrate integration at specific times\n";
+    std::cout << "------------------------------------------------\n";
+  }
 
   { // Uncomment this block, to calculate and print out
     // a complete closed orbit
