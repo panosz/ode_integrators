@@ -4,9 +4,10 @@
 
 #ifndef ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
 #define ODE_INTEGRATORS_INTEGRATION_UTILITIES_HPP
-
 #include <boost/numeric/odeint.hpp>
+#include <boost/numeric/odeint/iterator/times_iterator.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/range/empty.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm_ext/push_back.hpp>
 #include <myUtilities/zero_crossing.hpp>
@@ -111,6 +112,33 @@ auto make_OrbitTimeRange (System sys,
                                     orbit_iterators.second);
 }
 
+template<typename System, typename TimeIterator>
+auto make_OrbitTimesRange (System sys,
+                           typename System::StateType& init_state,
+                           TimeIterator t_start ,
+                           TimeIterator t_end ,
+                           IntegrationOptions options)
+///returned orbit has range of type times_range
+
+{
+
+  const auto controlled_stepper = make_controlled(options.abs_err,
+                                                  options.rel_err,
+                                                  ErrorStepperType<System>());
+
+
+
+  auto orbit_iterators = boost::numeric::odeint::make_times_range(controlled_stepper,
+                                          sys,
+                                          init_state,
+                                          t_start,
+                                          t_end,
+                                          options.dt);
+
+  return boost::make_iterator_range(orbit_iterators.first,
+                                    orbit_iterators.second);
+}
+
 template<typename System>
 class ParticleOrbit {
  public:
@@ -120,7 +148,9 @@ class ParticleOrbit {
   StateType init_state_;
   double integration_time_;
   IntegrationOptions options_;
-  mutable StateType state_;
+  mutable StateType state_for_range_;
+  mutable StateType state_for_time_range_;
+  mutable StateType state_for_times_range_;
  public:
 
   ParticleOrbit (System sys,
@@ -131,7 +161,9 @@ class ParticleOrbit {
                  init_state_{init_state},
                  integration_time_{integration_time},
                  options_{options},
-                 state_(init_state)
+                 state_for_range_{init_state},
+                 state_for_time_range_{init_state},
+                 state_for_times_range_{init_state}
   { }
 
   StateType init_state () const
@@ -147,10 +179,10 @@ class ParticleOrbit {
   /// should not follow more than two instances of the same orbit range
   /// simultaneously
   {
-    state_ = init_state_;
+    state_for_range_ = init_state_;
 
     return make_OrbitRange(sys_,
-                           state_,
+                           state_for_range_,
                            integration_time_,
                            options_);
   }
@@ -159,9 +191,18 @@ class ParticleOrbit {
   /// should not follow more than two instances of the same orbit range
   /// simultaneously
   {
-    state_ = init_state_;
-    return make_OrbitTimeRange(sys_, state_, integration_time_, options_);
+    state_for_time_range_ = init_state_;
+    return make_OrbitTimeRange(sys_, state_for_time_range_, integration_time_, options_);
   }
+
+template<typename TimeIterator>
+  auto times_range(TimeIterator t_start,
+                   TimeIterator t_end)
+  {
+    state_for_times_range_ = init_state_;
+    return make_OrbitTimesRange(sys_, state_for_times_range_, t_start, t_end, options_);
+  }
+
 
 };
 
@@ -377,6 +418,32 @@ namespace
     }
 }
 
+template<typename System, typename Range>
+std::vector<typename System::StateType>
+orbit_points_at_times(System sys,
+                      const typename System::StateType& first_point,
+                      const Range& times,
+                      IntegrationOptions integrationOptions)
+{
+  std::vector<typename System::StateType> output{};
+  if (boost::empty(times))
+    return output;
+
+  const double max_time = 0; // a dummy value
+  auto orbit = make_ParticleOrbit(sys,
+                                  first_point,
+                                  max_time,
+                                  integrationOptions);
+
+  const auto orbit_points = orbit.times_range(std::cbegin(times),std::cend(times));
+
+
+
+  boost::range::push_back(output,orbit_points);
+
+  return output;
+
+}
 
 template<typename System>
 std::vector<typename System::StateType>
