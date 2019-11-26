@@ -2,14 +2,17 @@
 // Created by Panagiotis Zestanakis on 18/09/18.
 //
 #include <vector>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <string>
 #include <cmath>
 #include <stdexcept>
 #include <boost/math/constants/constants.hpp>
 #include <boost/math/special_functions/pow.hpp>
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+
 
 #include "samplingCollections.hpp"
 #include "armadillo_state.hpp"
@@ -22,13 +25,142 @@
 #include "action_integration.hpp"
 #include "UnperturbedExtendedOscillatorHamiltonian.hpp"
 
-void print_usage_string (const std::string& program_name)
+
+#define TEST_E_H_O_NAME "test_E_H_0"
+#define TEST_E_H_O_VERSION "1.0"
+
+//Prints version info
+void print_version_info()
 {
-  const auto usage_string =
-      "usage: " + program_name + " input_filename integration_time";
-  std::cout << usage_string << std::endl;
+  std::cout << TEST_E_H_O_NAME
+            << ", version "
+            << TEST_E_H_O_VERSION
+            << '\n';
 }
 
+void print_description()
+{
+  print_version_info();
+  std::cout<<'\n';
+  std::cout << "This program is used to test the path integral calculation"
+               " of the Hessian of the Hamiltonian in action space\n"
+            << "The Hamiltonian used is that of the Extended Harmonic Oscillator\n"
+            << "\t\t H = M p^2 + F q^2\n"
+            << "Its functional form in Action space is"
+            << "\t\t K = 2 Sqrt(M F) J\n";
+}
+
+
+// Return a group of options that will be
+// allowed only on command line
+po::options_description generic_options(std::string& config_file)
+{
+    po::options_description generic("Generic options");
+    generic.add_options()
+      ("version,v",
+       "print version string")
+      ("help,h",
+       "produce help message")
+      ("config,c",
+        po::value<std::string>(&config_file),
+        "configuration file")
+      ;
+    return generic;
+}
+
+std::ostream& report_flag(std::ostream& os,
+                          bool flag,
+                          const std::string flag_description)
+{
+  return os << (flag ? "Running\t": "NOT running")
+            << "\t\"" << flag_description << "\"\n";
+}
+
+struct TestFlags
+{
+    bool specific_times=true;
+    bool complete_orbit=true;
+    bool complete_extended_orbit=true;
+    bool analytical=true;
+};
+
+std::ostream& operator<<(std::ostream& os, const TestFlags& tf)
+{
+    report_flag(os,
+                tf.specific_times,
+                "calculation at specific times");
+    report_flag(os,
+                tf.complete_orbit,
+                "calculate and print out a complete closed orbit");
+    report_flag(os,
+                tf.complete_extended_orbit,
+                "calculate and print out a complete closed orbit"
+                "in extended phase space");
+    report_flag(os,
+                tf.analytical,
+                "test the numerical action integration results"
+                "versus the analytical calculations");
+    return os;
+}
+
+struct UserOptions {
+    TestFlags test_flags{};
+    std::string init_filename{};
+    double integration_time{};
+    double mass{};
+    unsigned initial_point_index{};
+};
+
+std::ostream& operator<<(std::ostream& os, const UserOptions& uo)
+{
+    os<<uo.test_flags
+      <<'\n'
+      << "Initial points file is: "
+      << uo.init_filename << '\n'
+      << "Integration time is " << uo.integration_time << '\n'
+      << "System mass is" << uo.mass << '\n'
+      << "The initial point used in the single orbits test"
+      << " is the point with index " << uo.initial_point_index << '\n';
+    return os;
+}
+
+// allowed both on command line and in
+// config file
+po::options_description configuration_options(UserOptions& uo)
+
+{
+    po::options_description config("Configuration");
+    config.add_options()
+        ("specific_times",
+         po::value<bool>(&uo.test_flags.specific_times)->default_value(true),
+         "When on, calculate and print out an orbit at specific times")
+        ("complete_orbit",
+         po::value<bool>(&uo.test_flags.complete_orbit)->default_value(true),
+         "When on, calculate and print out a complete closed orbit")
+        ("complete_extended_orbit",
+         po::value<bool>(&uo.test_flags.complete_extended_orbit)->default_value(true),
+         "When on, calculate and print out a complete closed orbit"
+         " in extended phase space")
+        ("analytical",
+         po::value<bool>(&uo.test_flags.analytical)->default_value(true),
+         "When on, test the numerical action integration results"
+         "versus the analytical calculations")
+        ("integration_time,t",
+          po::value<double>(&uo.integration_time)->required(),
+          "maximum integration time")
+        ("mass",
+          po::value<double>(&uo.mass)->required(),
+          "system mass")
+        ("init,i",
+          po::value<std::string>(&uo.init_filename)->required(),
+          "initial positions file")
+        ("index",
+          po::value<unsigned>(&uo.initial_point_index)->default_value(0),
+          "determines the initial point used for the single orbit tests")
+        ;
+
+    return config;
+}
 struct InputOptions {
     char *input_filename;
     double integration_time;
@@ -38,61 +170,7 @@ struct InputOptions {
 
 };
 
-double get_double_from_argument (const std::string& input, const std::string& parameter)
-{
-  double out;
-  try
-    {
-      out = std::stod(input);
-    }
-  catch (...)
-    {
-      std::cerr << "Invalid" + parameter + ": " + input << std::endl;
-      throw;
-    }
 
-  return out;
-}
-
-int get_int_from_argument (const std::string& input, const std::string& parameter)
-{
-  int out;
-  try
-    {
-      out = std::stoi(input);
-    }
-  catch (...)
-    {
-      std::cerr << "Invalid" + parameter + ": " + input << std::endl;
-      throw;
-    }
-
-  return out;
-}
-
-InputOptions parse_arguments (int argc, char **argv)
-{
-  InputOptions inputOptions{};
-
-  if (argc < 3)
-    print_usage_string(argv[0]);
-
-  switch (argc)
-    {
-  case 1:
-    throw std::runtime_error("input_filename must be specified.");
-
-  case 2:
-    throw std::runtime_error("integration time must be specified");
-    }
-
-  inputOptions.input_filename = argv[1];
-
-  inputOptions.integration_time = get_double_from_argument(argv[2], "integration time");
-
-  return inputOptions;
-
-}
 
 bool double_near (double x, double y, double abs_tolerance)
 {
@@ -152,34 +230,101 @@ test_integration_result (const DS::PhaseSpaceState& init_state,
 int main (int argc, char *argv[])
 {
 
-  std::cout << " TEST EXTENDED HARMONIC OSCILLATOR\n"
-            << "----------------------------------------\n"
-            << "This program is used to test the path integral calculation of the Hessian of the Hamiltonian in action space\n"
-            << "The Hamiltonian used is that of the Extended Harmonic Oscillator\n"
-            << "\t\t H = M p^2 + F q^2\n"
-            << "Its functional form in Action space is"
-            << "\t\t K = 2 Sqrt(M F) J\n";
+        UserOptions uo;
+        std::string config_file;
 
-  const auto user_options = parse_arguments(argc, argv);
+    try {
+        // Declare a group of options that will be
+        // allowed only on command line
+        auto generic = generic_options(config_file);
 
-  const auto input_filename = user_options.input_filename;
+        // Declare a group of options that will be
+        // allowed both on command line and in
+        // config file
+        auto config = configuration_options(uo);
+
+        po::options_description all_opt_description("Allowed options");
+        all_opt_description.add(generic).add(config);
+
+        po::variables_map vm;
+        po::parsed_options generic_parced=po::command_line_parser(argc, argv).
+              options(generic).allow_unregistered().run();
+        store(generic_parced, vm);
+        notify(vm);
+
+        if (vm.count("help"))
+        {
+            print_description();
+            std::cout << all_opt_description << '\n';
+            return 0;
+        }
+
+        if (vm.count("version"))
+        {
+            print_version_info();
+            return 0;
+        }
+
+        std::vector<std::string> to_pass_further =
+          po::collect_unrecognized(generic_parced.options, po::include_positional);
+
+        store(po::command_line_parser(to_pass_further).
+              options(config).run(), vm);
+
+        if (vm.count("config"))
+        {
+          std::ifstream ifs(config_file.c_str());
+            if (!ifs)
+            {
+              std::cerr << "Error: Can not open config file: " << config_file << '\n';
+              std::cout << all_opt_description << '\n';
+              return 0;
+            }
+            else
+            {
+              store(parse_config_file(ifs, config), vm);
+            }
+        }
+        notify(vm);
+
+        std::cout<<uo<<'\n';
+
+
+    }
+    catch(std::exception& e)
+    {
+        std::cout << e.what() << '\n';
+        return 1;
+    }
+
+
+  // const auto user_options = parse_arguments(argc, argv);
+
 
   const auto init_states =
-      get_state_from_file<DS::PhaseSpaceState>(input_filename, 4);
+      get_state_from_file<DS::PhaseSpaceState>(uo.init_filename.c_str(), 4);
+
+  if (init_states.empty())
+    throw(std::runtime_error("init filename does not contain any initial states"));
+
+  if (uo.initial_point_index >= init_states.size())
+    throw(std::runtime_error("Option index greater than the number"
+          " of initial states in init filename"));
+
+  const auto init_state = init_states[uo.initial_point_index];
 
   std::cout << "Init States:\n" << init_states << '\n';
 
   const auto options = IntegrationOptions{1e-12, 1e-12, 1e-5};
 
-  const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(1.4);
+  const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(uo.mass);
 
-  { // Uncomment this block, to calculate and print out
-    // an orbit at specific times
+  if (uo.test_flags.specific_times)
+  {
     auto my_phase_space_sys = DS::makeUnperturbedDynamicSystem(myHam);
     std::cout << "\nDemonstrate integration at specific times\n";
     std::cout << "-----------------------------------------\n";
 
-    const auto init_state = init_states[10];
 
     std::cout << "init_state = " << init_state;
 
@@ -208,26 +353,24 @@ int main (int argc, char *argv[])
     std::cout << "------------------------------------------------\n";
   }
 
-  { // Uncomment this block, to calculate and print out
-    // a complete closed orbit
+  if(uo.test_flags.complete_orbit)
+  {
     auto my_phase_space_sys = DS::makeUnperturbedDynamicSystem(myHam);
     std::cout << "\nDemonstrate integration in single closed orbit\n";
     std::cout << "----------------------------------------------\n";
-
-    const auto init_state = init_states[10];
 
     std::cout << "init_state = " << init_state;
 
     const auto closed_orbit = integrate_along_closed_orbit(
                                                 my_phase_space_sys,
                                                 init_state,
-                                                user_options.integration_time,
+                                                uo.integration_time,
                                                 options);
 
     const auto last_point = last_point_on_closed_orbit(
                                                 my_phase_space_sys,
                                                 init_state,
-                                                user_options.integration_time,
+                                                uo.integration_time,
                                                 options);
 
     for (const auto& s : closed_orbit)
@@ -242,32 +385,32 @@ int main (int argc, char *argv[])
       "-----------------------------------------------------\n";
   }
 
-  { // Uncomment this block, to calculate and print out
-    // a complete closed orbit in extended phase space
+  if(uo.test_flags.complete_extended_orbit)
+  {
     auto my_sys = DS::makeActionDynamicSystem(myHam);
     std::cout << "\nDemonstrate extended integration in single closed orbit\n";
     std::cout << "-------------------------------------------------------\n";
 
-    const auto init_state = DS::phase_to_extended_space_state(init_states[10]);
-    std::cout << "init_state = " << init_state;
+    const auto extended_init_state = DS::phase_to_extended_space_state(init_state);
+    std::cout << "extended_init_state = " << extended_init_state;
 
     const auto closed_orbit = integrate_along_closed_orbit(
                                                 my_sys,
-                                                init_state,
-                                                user_options.integration_time,
+                                                extended_init_state,
+                                                uo.integration_time,
                                                 options);
 
     const auto last_point = last_point_on_closed_orbit(
                                                 my_sys,
-                                                init_state,
-                                                user_options.integration_time,
+                                                extended_init_state,
+                                                uo.integration_time,
                                                 options);
 
     for (const auto& s : closed_orbit)
       std::cout << s;
 
-    std::cout << "init_state " << init_state
-              << "final_state" << closed_orbit.back() ;
+    std::cout << "extended_init_state " << extended_init_state
+              << "extended_final_state" << closed_orbit.back() ;
 
     std::cout <<
       "\nEnd of Demonstrate extended integration in single closed orbit\n";
@@ -276,6 +419,7 @@ int main (int argc, char *argv[])
 
   }
 
+  if(uo.test_flags.analytical)
   { // Uncomment this block, to test the numerical action integration results
     // versus the analytical calculations
     std::cout << "Compare analytical and numerical calculations\n";
@@ -309,7 +453,7 @@ int main (int argc, char *argv[])
       const auto action_result =
         action_integration(my_sys,
                            s,
-                           user_options.integration_time,
+                           uo.integration_time,
                            options);
 
       std::cout << s[2] << "\t\t"
@@ -339,7 +483,7 @@ int main (int argc, char *argv[])
     int no_of_tests = 0;
     for (const auto& s:init_states)
     {
-      const auto action_result = action_integration(my_sys, s, user_options.integration_time, options);
+      const auto action_result = action_integration(my_sys, s, uo.integration_time, options);
       const auto passed = test_integration_result(s, action_result, myHam, 1e-10);
       no_of_passed_tests += passed;
       no_of_failed_tests += ! passed;
