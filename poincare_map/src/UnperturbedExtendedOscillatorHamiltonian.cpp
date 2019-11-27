@@ -173,7 +173,7 @@ namespace DS
       const double q = A / sqrtF * sin(propagation_phase);
 
       const double phi = omega_phi * dt
-                         - 0.5 * omega_phi * sin(2 * (propagation_phase))
+                         - 0.5 * omega_phi/omega * sin(2 * (propagation_phase))
                          + phi0;
 
       propagated[static_cast<unsigned>(CoordinateTag::p)] = p;
