@@ -164,6 +164,56 @@ po::options_description configuration_options(UserOptions& uo)
     return config;
 }
 
+class TestRegister
+{
+public:
+  explicit TestRegister(std::string name):name_{name}{};
+
+  TestRegister& operator +=(bool test_result) noexcept
+  {
+    number_of_tests_++;
+    if (test_result)
+      passed_tests_++;
+    else
+      failed_tests_++;
+
+    return *this;
+  }
+
+  unsigned total_tests() const noexcept
+  {
+    return number_of_tests_;
+  };
+
+  unsigned passed() const noexcept
+  {
+    return passed_tests_;
+  };
+
+  unsigned failed() const noexcept
+  {
+    return failed_tests_;
+  }
+
+
+  virtual ~TestRegister()
+  {
+
+      std::cout << name_<< " TEST RESULTS\n";
+      std::cout << "-------------------------------------------------------------\n";
+      std::cout << "*   TOTAL TESTS: " << total_tests() << '\n';
+      std::cout << "*   PASSED: " << passed() << '\n';
+      std::cout << "*   FAILED: " << failed() << '\n';
+      std::cout << "-------------------------------------------------------------\n";
+  }
+
+
+private:
+  std::string name_{};
+  unsigned number_of_tests_ = 0;
+  unsigned passed_tests_ = 0;
+  unsigned failed_tests_ = 0;
+};
 
 
 bool double_near (double x, double y, double abs_tolerance)
@@ -230,11 +280,6 @@ test_integration_result (const DS::PhaseSpaceState& init_state,
 
 }
 
-
-
-int no_of_passed_tests = 0;
-int no_of_failed_tests = 0;
-int no_of_tests = 0;
 
 int main (int argc, char *argv[])
 {
@@ -328,6 +373,8 @@ int main (int argc, char *argv[])
 
   const auto myHam = DS::UnperturbedExtendedOscillatorHamiltonian(uo.mass);
 
+  TestRegister test_register("Test Register");
+
   if (uo.test_flags.specific_times)
   {
     auto my_phase_space_sys = DS::makeUnperturbedDynamicSystem(myHam);
@@ -376,6 +423,7 @@ int main (int argc, char *argv[])
     }
 
     std::cout<< "TEST "<< (all_accurate_enough?"PASSED":"FAILED!")<<'\n';
+    test_register += all_accurate_enough;
 
 
 
@@ -512,18 +560,10 @@ int main (int argc, char *argv[])
     for (const auto& s:init_states)
     {
       const auto action_result = action_integration(my_sys, s, uo.integration_time, options);
-      const auto passed = test_integration_result(s, action_result, myHam, 1e-10);
-      no_of_passed_tests += passed;
-      no_of_failed_tests += ! passed;
-      no_of_tests +=1;
+      test_register += test_integration_result(s, action_result, myHam, 1e-10);
 
     }
-    std::cout << "******************************************************************************************\n";
-    std::cout << "*   TOTAL TESTS: " << no_of_tests << '\n';
-    std::cout << "*   PASSED: " << no_of_passed_tests<< '\n';
-    std::cout << "*   FAILED: " << no_of_failed_tests<< '\n';
-    std::cout << "******************************************************************************************\n";
-  }
+ }
 
   return 0;
 }
