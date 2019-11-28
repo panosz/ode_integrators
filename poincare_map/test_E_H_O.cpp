@@ -8,7 +8,9 @@
 #include <filesystem>
 #include <cmath>
 #include <stdexcept>
+#include <boost/tuple/tuple.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/range/combine.hpp>
 #include <boost/math/special_functions/pow.hpp>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
@@ -177,6 +179,15 @@ bool double_near (double x, double y, double abs_tolerance)
   return std::abs(x - y) < abs_tolerance;
 }
 
+bool position_absolute_near(const DS::PhaseSpaceState& p1,
+                   const DS::PhaseSpaceState& p2,
+                   double tolerance)
+{
+  using boost::numeric::odeint::vector_space_norm_inf;
+  const DS::PhaseSpaceState dp = p1-p2;
+  return double_near(vector_space_norm_inf<DS::PhaseSpaceState>()(dp), 0, tolerance);
+}
+
 bool test_numerical_vs_analytical_result (const std::string& quantity_name,
                                       double numerical_value,
                                       double analytical_value, double tolerance)
@@ -226,6 +237,12 @@ test_integration_result (const DS::PhaseSpaceState& init_state,
   return passed;
 
 }
+
+
+
+int no_of_passed_tests = 0;
+int no_of_failed_tests = 0;
+int no_of_tests = 0;
 
 int main (int argc, char *argv[])
 {
@@ -328,7 +345,7 @@ int main (int argc, char *argv[])
 
     std::cout << "init_state = " << init_state;
 
-    const std::vector<double> times{0.01,0.02,0.03,0.04};
+    const std::vector<double> times{0, 0.01,0.02,1.03,3.04};
     const auto points_at_times = orbit_points_at_times(
                                                 my_phase_space_sys,
                                                 init_state,
@@ -346,6 +363,28 @@ int main (int argc, char *argv[])
     std::cout<< "analytic calculation of positions at specific times:"<<'\n';
     for (const auto & point : analytic_points_at_times)
       std::cout<<point<<'\n';
+
+
+    bool all_accurate_enough = true;
+    std::cout<< "compare with analytic results:"<<'\n';
+    for (const auto & zipped : boost::combine(points_at_times,
+                                              analytic_points_at_times))
+    {
+      DS::PhaseSpaceState p_numeric;
+      DS::PhaseSpaceState p_exact;
+        boost::tie(p_numeric, p_exact) = zipped;
+
+        std::cout<<"Exact position: " << p_exact;
+        std::cout<<"Distance : " << p_numeric - p_exact;
+        bool accurate_enough = position_absolute_near(p_numeric,p_exact,1e-8);
+        std::cout << "Numeric position is"
+                  <<(accurate_enough?" ":" NOT ")
+                  << "accurate enough" << '\n';
+        all_accurate_enough = all_accurate_enough && accurate_enough;
+    }
+
+    std::cout<< "TEST "<< (all_accurate_enough?"PASSED":"FAILED!")<<'\n';
+
 
 
 
@@ -478,9 +517,6 @@ int main (int argc, char *argv[])
     std::cout << "**********     RUN TESTS    **********\n";
     std::cout << "**************************************\n";
 
-    int no_of_passed_tests = 0;
-    int no_of_failed_tests = 0;
-    int no_of_tests = 0;
     for (const auto& s:init_states)
     {
       const auto action_result = action_integration(my_sys, s, uo.integration_time, options);
