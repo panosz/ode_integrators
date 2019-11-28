@@ -163,14 +163,6 @@ po::options_description configuration_options(UserOptions& uo)
 
     return config;
 }
-struct InputOptions {
-    char *input_filename;
-    double integration_time;
-//    double perturbation_amplitude;
-//    int q_harmonic;
-//    int phi_harmonic;
-
-};
 
 
 
