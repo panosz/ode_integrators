@@ -1,6 +1,6 @@
 find_package (Python3 COMPONENTS Development)
 set(Boost_ROOT $ENV{HOME}/local/boost_1_69_0)
-find_package(Boost REQUIRED python37 numpy37 system)
+find_package(Boost REQUIRED python37 numpy37 system program_options)
 
 find_package(myUtilities REQUIRED)
 #find armadillo
@@ -93,7 +93,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/ DESTINATION ${CMAKE_INSTA
 
 
 add_executable(test_E_H_O test_E_H_O.cpp)
-target_link_libraries(test_E_H_O PUBLIC poincare_map)
+target_link_libraries(test_E_H_O PUBLIC poincare_map Boost::program_options)
 target_compile_options(test_E_H_O PRIVATE
                         -Wall 
                         -Wextra 

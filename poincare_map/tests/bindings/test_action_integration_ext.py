@@ -59,6 +59,46 @@ class AnalyticHO(object):
         return np.array([[self.d2KdJ2(s), self.d2KdJdF(s)],
                          [self.d2KdJdF(s), self.d2KdF2(s)]])
 
+    def propagate_single_step(self, init_state, dt):
+        p0 = init_state[_P_COORDINATE]
+        q0 = init_state[_Q_COORDINATE]
+        F = init_state[_F_COORDINATE]
+        phi0 = init_state[_PHI_COORDINATE]
+
+        E = self.value(init_state)
+        A = np.sqrt(E)
+        sqrtF = np.sqrt(F)
+        sqrtM = np.sqrt(self._mass)
+
+        theta_0 = np.arctan2(sqrtF * q0,
+                             sqrtM * p0)
+
+        omega = self.dKdJ(init_state)
+        omega_phi = self.dKdF(init_state)
+        propagation_phase = omega * dt + theta_0
+
+        p = A / sqrtM * np.cos(propagation_phase)
+        q = A / sqrtF * np.sin(propagation_phase)
+
+        phi_c = phi0 + 0.5 * omega_phi/omega * np.sin(2 * theta_0)
+
+        phi = omega_phi * dt \
+            - 0.5 * omega_phi/omega * np.sin(2 * propagation_phase) \
+            + phi_c
+
+        propagated = np.empty_like(init_state)
+
+        propagated[_P_COORDINATE] = p
+        propagated[_Q_COORDINATE] = q
+        propagated[_F_COORDINATE] = F
+        propagated[_PHI_COORDINATE] = phi
+
+        return propagated
+
+    def propagate(self, init_state, times):
+        return np.vstack([self.propagate_single_step(init_state, dt)
+                          for dt in times])
+
 
 class AnalyticPendulum(object):
 
@@ -116,6 +156,27 @@ def test_action_integration(s):
     desired = anal_ho.hessian(s)
 
     nt.assert_allclose(result, desired, atol=1e-10, rtol=1e-10)
+
+
+@pytest.mark.parametrize("s", list_of_HO_points)
+def test_orbit_at_times(s):
+    pass
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
+    options = ai.IntegrationOptions(**option_dict)
+    mass = HO_mass
+    anal_ho = AnalyticHO(mass)
+    ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
+    times = [0, 0.1, 0.2, 1.1]
+
+    propagated_numerically = ho_dynamic_system.orbit_at_times(s,
+                                                              times,
+                                                              options)
+    propagated_analytically = anal_ho.propagate(s, times)
+
+    nt.assert_allclose(propagated_numerically,
+                       propagated_analytically,
+                       atol=1e-10,
+                       rtol=1e-10)
 
 
 @pytest.mark.parametrize("s", list_of_HO_points)
@@ -177,7 +238,6 @@ def test_orbit_energy_is_const(s):
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
 
     def wrap_2pi(x):
         """
@@ -199,26 +259,18 @@ if __name__ == "__main__":
         """
         return x - 2 * np.pi * np.floor_divide(x, 2 * np.pi)
 
-    for p in list_of_HO_points:
-        print(f"Energy of point{p} is {AnalyticPendulum(HO_mass).value(p)}")
-
-    option_dict = {'abs_err': 1e-13, 'rel_err': 1e-13, 'dt': 1e-2}
+    option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
     options = ai.IntegrationOptions(**option_dict)
-    bad_point = list_of_HO_points[6]
-    mass = 1.0
-    dynamic_system = ai.PendulumDynamicSystem(mass)
-    hamiltonian = dynamic_system.hamiltonian
-    integration_time = 100
+    mass = HO_mass
+    anal_ho = AnalyticHO(mass)
+    ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
 
-    print(f'bad_point = {bad_point}')
-    print(dynamic_system.hamiltonian.value(bad_point))
+    times = [0, 0.1, 0.2, 1.1]
+    s = list_of_HO_points[1]
+    propagated_numerically = ho_dynamic_system.orbit_at_times(s,
+                                                              times,
+                                                              options)
+    propagated_analytically = anal_ho.propagate(s, times)
 
-    orbit, t = dynamic_system.orbit(s=bad_point,
-                                    time=integration_time,
-                                    options=options)
-
-    orbit_energies = np.apply_along_axis(lambda x: hamiltonian.value(x),
-                                         axis=1,
-                                         arr=orbit)
-    plt.plot(wrap_2pi(orbit[:, 1]), orbit[:, 0], 'k', markersize=.1)
-    plt.show()
+    for pn, pa in zip(propagated_numerically, propagated_analytically):
+        print(pn - pa)

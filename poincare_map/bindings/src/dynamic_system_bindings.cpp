@@ -44,6 +44,7 @@ namespace{
           return std::make_pair(positions, time);
         }
 
+
     public:
         explicit DynamicSystem(double mass):
           ham_{mass},
@@ -95,6 +96,22 @@ namespace{
             return p::make_tuple(StateBindings::ArmaSB::copy_to_nd_array(vector),
                                  StateBindings::copy_to_nd_array(time));
           }
+
+        auto orbit_at_times(const np::ndarray& ndar,
+                           const p::object& times_iterable,
+                           IntegrationOptions options) const
+        {
+          const auto init_s = StateBindings::ndarray_to_phase_space_state(ndar);
+          const auto times_vector =
+            StateBindings::iterable_to_vector_double(times_iterable);
+
+          const auto points =  orbit_points_at_times(unperturbed_system_,
+                                                     init_s,
+                                                     times_vector,
+                                                     options);
+          return StateBindings::ArmaSB:: copy_to_nd_array(points);
+
+        }
 
 
 
@@ -183,6 +200,11 @@ void export_dynamic_system(const char* system_name,
            &DSH::orbit,
            (p::arg("s"),
             p::arg("time"),
+            p::arg("options")))
+      .def("orbit_at_times",
+           &DSH::orbit_at_times,
+           (p::arg("s"),
+            p::arg("times"),
             p::arg("options")));
 
 }
