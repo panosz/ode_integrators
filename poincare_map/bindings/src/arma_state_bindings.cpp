@@ -9,16 +9,6 @@ namespace{
 
   using namespace StateBindings;
 
-  std::vector<double> iterable_to_vector_double(const p::object& python_iterable)
-  {
-
-    auto input_begin = p::stl_input_iterator<double>(python_iterable);
-    auto input_end = p::stl_input_iterator<double>();
-
-    const auto output_vector = std::vector<double>(input_begin,input_end);
-
-    return output_vector;
-  }
 
   std::vector<arma::mat> iterable_to_vector_of_arma_mat(const p::object& python_iterable)
   {
@@ -76,6 +66,16 @@ namespace{
 
 
 namespace StateBindings {
+  std::vector<double> iterable_to_vector_double(const p::object& python_iterable)
+  {
+
+    auto input_begin = p::stl_input_iterator<double>(python_iterable);
+    auto input_end = p::stl_input_iterator<double>();
+
+    const auto output_vector = std::vector<double>(input_begin,input_end);
+
+    return output_vector;
+  }
 
   np::ndarray copy_to_nd_array(const std::vector<double>& vect)
   {

@@ -10,6 +10,7 @@ namespace StateBindings
   namespace p = boost::python;
   namespace np = boost::python::numpy;
 
+  std::vector<double> iterable_to_vector_double(const p::object& python_iterable);
   DS::PhaseSpaceState ndarray_to_phase_space_state(const np::ndarray& ndar);
 
   np::ndarray args_to_nd_array(double, double, double);
