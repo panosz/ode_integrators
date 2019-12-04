@@ -177,8 +177,12 @@ def k_on_resonance(res, m_harmonic, An_s):
         #  return np.sin(nperturb * q + mperturb * chi)
 
     #  standard_perturb.m = mperturb
-    #  orbit = ds.make_closed_orbit(ds.HarmonicOsillator(F), p0=p, t_integration_max=1000)
-    #  return harmonics.orbital_harmonics_on_const_chi_bar(standard_perturb, orbit, n_samples)
+    #  orbit = ds.make_closed_orbit(ds.HarmonicOsillator(F),
+    #                               p0=p,
+    #                               t_integration_max=1000)
+    #  return harmonics.orbital_harmonics_on_const_chi_bar(standard_perturb,
+    #                                                      orbit,
+    #                                                      n_samples)
 
 
 NominalWidth = collections.namedtuple('NominalWidth',
@@ -187,47 +191,58 @@ ResonanceOutput = collections.namedtuple('ResonanceOutput',
                                          'position nominal_widths')
 
 
-def get_nominal_resonance_widths(nperturb, mperturb, energy):
-    if energy not in resonance_dict.keys():
-        raise RuntimeError(f"No entries for Energy={energy}")
-
-    resonance_widths = []
-
-    for res_details in resonance_dict[energy]:
-        ratio_res = res_details.ratio
-        F_res = res_details.position.F
-        p_res = res_details.position.p
-        hessian_res = res_details.hessian
-
-        har = get_harmonics_on_resonant_orbit(F=F_res, p=p_res, nperturb=nperturb, mperturb=mperturb)
-        k_res = k_on_resonance(ratio_res, mperturb, har)
-
-        if k_res:
-            delta_J_hat_nominal = 2 * np.sqrt(k_res / effective_mass(ratio_res, hessian_res))
-
-            r = ratio_res.numerator
-            s = ratio_res.denominator
-
-            delta_J = abs(r) * delta_J_hat_nominal
-            delta_F = abs(s) * delta_J_hat_nominal
-
-            resonance_widths.append(ResonanceOutput(position=res_details.position,
-                                                    nominal_widths=NominalWidth(delta_J=delta_J, delta_F=delta_F)))
-
-    return resonance_widths
-
+# def get_nominal_resonance_widths(nperturb, mperturb, energy):
+#     if energy not in resonance_dict.keys():
+#         raise RuntimeError(f"No entries for Energy={energy}")
+#
+#     resonance_widths = []
+#
+#     for res_details in resonance_dict[energy]:
+#         ratio_res = res_details.ratio
+#         F_res = res_details.position.F
+#         p_res = res_details.position.p
+#         hessian_res = res_details.hessian
+#
+#         har = get_harmonics_on_resonant_orbit(F=F_res,
+#                                               p=p_res,
+#                                               nperturb=nperturb,
+#                                               mperturb=mperturb)
+#         k_res = k_on_resonance(ratio_res, mperturb, har)
+#
+#         if k_res:
+#             eff_mass = effective_mass(ratio_res, hessian_res)
+#             delta_J_hat_nominal = 2 * np.sqrt(k_res / eff_mass)
+#
+#             r = ratio_res.numerator
+#             s = ratio_res.denominator
+#
+#             delta_J = abs(r) * delta_J_hat_nominal
+#             delta_F = abs(s) * delta_J_hat_nominal
+#             position = res_details.position
+#             nominal_width = NominalWidth(delta_J=delta_J, delta_F=delta_F)
+#             res_width = ResonanceOutput(position=position,
+#                                         nominal_widths=nominal_width)
+#             resonance_widths.append(res_width)
+#
+#     return resonance_widths
+#
 
 # if __name__ == "__main__":
 #
-    # amplitude = 0.04
-    # nperturb = -5
-    # mperturb = 2
-    #
-    # for (res, nominal_widths) in get_nominal_resonance_widths(nperturb=nperturb, mperturb=mperturb).items():
-    #     delta_J = np.sqrt(amplitude) * nominal_widths.delta_J
-    #     delta_F = np.sqrt(amplitude) * nominal_widths.delta_F
-    #     print("widths at {}: delta_J = {}, delta_F = {}".format(res,
-    #                                                             delta_J,
-    #                                                             delta_F))
-    #
-    #     F_min, F_max = resonance_dict[res].position.F - delta_F, resonance_dict[res].position.F + delta_F
+#     amplitude = 0.04
+#     nperturb = -5
+#     mperturb = 2
+#
+#     res_n_width = get_nominal_resonance_widths(nperturb=nperturb,
+#                                                mperturb=mperturb)
+#
+#     for (res, nominal_widths) in res_n_width.items():
+#         delta_J = np.sqrt(amplitude) * nominal_widths.delta_J
+#         delta_F = np.sqrt(amplitude) * nominal_widths.delta_F
+#         print("widths at {}: delta_J = {}, delta_F = {}".format(res,
+#                                                                 delta_J,
+#                                                                 delta_F))
+#
+#     F_min = resonance_dict[res].position.F - delta_F
+#
+#     F_max = resonance_dict[res].position.F + delta_F
