@@ -27,6 +27,11 @@ def test_Resonance_valid_iterable_construction():
     assert res.ratio == 0.5
 
 
+def test_Resonance_zero_denominator_exception():
+    with pytest.raises(ZeroDivisionError):
+        nr.Resonance((1, 0))
+
+
 def test_Resonance_ratio_read_only():
     res = nr.Resonance([1, 2])
     with pytest.raises(AttributeError) as atrerror:
@@ -67,3 +72,10 @@ def test_Resonance_str():
 def test_not_addable():
     with pytest.raises(TypeError):
         nr.Resonance(2, 4) + nr.Resonance(3, 5)
+
+
+def test_comparable():
+    assert nr.Resonance(3, 6) > nr.Resonance(3, 7)
+    assert nr.Resonance(3, 6) >= 0.5
+    assert nr.Resonance(3, 6) <= 0.5
+    assert nr.Resonance(-3, 6) < 0

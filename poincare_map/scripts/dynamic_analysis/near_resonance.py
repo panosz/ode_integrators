@@ -1,7 +1,9 @@
 from fractions import Fraction
+from functools import total_ordering
 import numpy as np
 
 
+@total_ordering
 class Resonance(object):
 
     """Class for calculating the rotated dynamic system quantities
@@ -31,6 +33,12 @@ class Resonance(object):
 
     def __eq__(self, other):
         return self.ratio == other
+
+    def __gt__(self, other):
+        if isinstance(other, Resonance):
+            return self.ratio > other.ratio
+        else:
+            return self.ratio > other
 
     def __repr__(self):
         cls = self.__class__.__name__
