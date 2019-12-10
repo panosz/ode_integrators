@@ -122,4 +122,4 @@ target_compile_options(test_E_H_O PRIVATE
                         >
                         )
 
-add_subdirectory(bindings)
+add_subdirectory(python)

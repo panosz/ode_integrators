@@ -33,7 +33,7 @@ target_compile_options(_core
 target_include_directories(
         _core PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include/poincare_map/bindings/action_integration_ext/include>
+        $<INSTALL_INTERFACE:include/poincare_map/python/action_integration_ext/include>
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
