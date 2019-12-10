@@ -1,4 +1,4 @@
-from action_integration_ext import IntegrationOptions
+from dynamic_analysis.core import IntegrationOptions
 
 defaults = {'abs_err': 1e-10,
             'rel_err': 1e-10,

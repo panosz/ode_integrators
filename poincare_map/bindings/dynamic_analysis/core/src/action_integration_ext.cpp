@@ -13,7 +13,7 @@ namespace np = boost::python::numpy;
 
 
 
-BOOST_PYTHON_MODULE(core)
+BOOST_PYTHON_MODULE(_core)
 {
   np::initialize();  // have to put this in any module that uses Boost.NumPy
   StateBindings::export_args_to_nd_array();

@@ -1,5 +1,5 @@
 from setuptools import setup
 
 setup(name="dynamic_analysis",
-      packages=['core'],
-      package_data={'core': ['_core.so']})
+      packages=['dynamic_analysis', 'dynamic_analysis.core'],
+      package_data={'dynamic_analysis.core': ['_core.so']})

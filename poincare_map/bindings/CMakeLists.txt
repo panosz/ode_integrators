@@ -1,4 +1,4 @@
-add_subdirectory(core)
+add_subdirectory(dynamic_analysis)
 
 
 # configure_file(src/test_action_integration_ext.py ${CMAKE_CURRENT_BINARY_DIR}/test_action_integration_ext.py COPYONLY)
