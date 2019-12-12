@@ -1,5 +1,4 @@
-
-add_library(action_integration_ext MODULE 
+add_library(_core MODULE 
             src/action_integration_ext.cpp 
             include/ActionIntegrationResultDecorator.hpp
             src/state_bindings.cpp
@@ -12,10 +11,10 @@ add_library(action_integration_ext MODULE
             src/hamiltonians_bindings.cpp
             )
 
-target_link_libraries(action_integration_ext Boost::python37 Boost::numpy37 Python3::Python poincare_map )
-set_target_properties(action_integration_ext PROPERTIES PREFIX "")
+target_link_libraries(_core Boost::python37 Boost::numpy37 Python3::Python poincare_map )
+set_target_properties(_core PROPERTIES PREFIX "")
 
-target_compile_options(action_integration_ext
+target_compile_options(_core
         PRIVATE
         -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic
         -Weffc++ -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual
@@ -32,9 +31,9 @@ target_compile_options(action_integration_ext
         >
         )
 target_include_directories(
-        action_integration_ext PUBLIC
+        _core PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include/poincare_map/bindings/include>
+        $<INSTALL_INTERFACE:include/poincare_map/python/action_integration_ext/include>
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
@@ -42,8 +41,6 @@ message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}") 
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}") 
 
-
-# configure_file(src/test_action_integration_ext.py ${CMAKE_CURRENT_BINARY_DIR}/test_action_integration_ext.py COPYONLY)
-# configure_file(src/test_action_integration_numerics.py ${CMAKE_CURRENT_BINARY_DIR}/test_action_integration_numerics.py COPYONLY)
 configure_file(__init__.py ${CMAKE_CURRENT_BINARY_DIR}/__init__.py COPYONLY)
-configure_file(setup.py ${CMAKE_CURRENT_BINARY_DIR}/setup.py COPYONLY)
+
+
