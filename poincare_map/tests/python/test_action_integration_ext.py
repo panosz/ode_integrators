@@ -1,7 +1,7 @@
 import numpy as np
 import numpy.testing as nt
 import pytest
-import action_integration_ext as ai
+import dynamic_analysis.core as dyn_core
 
 _P_COORDINATE = 0
 _Q_COORDINATE = 1
@@ -143,11 +143,11 @@ HO_mass = 1.0
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_action_integration(s):
     option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
-    options = ai.IntegrationOptions(**option_dict)
+    options = dyn_core.IntegrationOptions(**option_dict)
     mass = HO_mass
     anal_ho = AnalyticHO(mass)
 
-    ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
+    ho_dynamic_system = dyn_core.HarmonicOscDynamicSystem(mass)
     ho_action_integrals = ho_dynamic_system.action_integrals(s=s,
                                                              time=1000,
                                                              options=options)
@@ -162,10 +162,10 @@ def test_action_integration(s):
 def test_orbit_at_times(s):
     pass
     option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
-    options = ai.IntegrationOptions(**option_dict)
+    options = dyn_core.IntegrationOptions(**option_dict)
     mass = HO_mass
     anal_ho = AnalyticHO(mass)
-    ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
+    ho_dynamic_system = dyn_core.HarmonicOscDynamicSystem(mass)
     times = [0, 0.1, 0.2, 1.1]
 
     propagated_numerically = ho_dynamic_system.orbit_at_times(s,
@@ -182,10 +182,10 @@ def test_orbit_at_times(s):
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_orbit_closes(s):
     option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
-    options = ai.IntegrationOptions(**option_dict)
+    options = dyn_core.IntegrationOptions(**option_dict)
     mass = HO_mass
 
-    dynamic_system = ai.PendulumDynamicSystem(mass)
+    dynamic_system = dyn_core.PendulumDynamicSystem(mass)
 
     a = dynamic_system.closed_orbit(s=s,
                                     time=1000,
@@ -199,11 +199,11 @@ def test_orbit_closes(s):
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_following_orbit(s):
     option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
-    options = ai.IntegrationOptions(**option_dict)
+    options = dyn_core.IntegrationOptions(**option_dict)
     mass = 1.0
     integration_time = 10
 
-    dynamic_system = ai.PendulumDynamicSystem(mass)
+    dynamic_system = dyn_core.PendulumDynamicSystem(mass)
 
     orbit, t = dynamic_system.orbit(s=s,
                                     time=integration_time,
@@ -217,10 +217,10 @@ def test_following_orbit(s):
 @pytest.mark.parametrize("s", list_of_HO_points)
 def test_orbit_energy_is_const(s):
     option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
-    options = ai.IntegrationOptions(**option_dict)
+    options = dyn_core.IntegrationOptions(**option_dict)
     mass = 1.0
 
-    dynamic_system = ai.PendulumDynamicSystem(mass)
+    dynamic_system = dyn_core.PendulumDynamicSystem(mass)
 
     hamiltonian = dynamic_system.hamiltonian
 
@@ -260,10 +260,10 @@ if __name__ == "__main__":
         return x - 2 * np.pi * np.floor_divide(x, 2 * np.pi)
 
     option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
-    options = ai.IntegrationOptions(**option_dict)
+    options = dyn_core.IntegrationOptions(**option_dict)
     mass = HO_mass
     anal_ho = AnalyticHO(mass)
-    ho_dynamic_system = ai.HarmonicOscDynamicSystem(mass)
+    ho_dynamic_system = dyn_core.HarmonicOscDynamicSystem(mass)
 
     times = [0, 0.1, 0.2, 1.1]
     s = list_of_HO_points[1]
