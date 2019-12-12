@@ -1,8 +1,0 @@
-setup.py
-dynamic_analysis/__init__.py
-dynamic_analysis/harmonics.py
-dynamic_analysis/near_resonance.py
-dynamic_analysis.egg-info/PKG-INFO
-dynamic_analysis.egg-info/SOURCES.txt
-dynamic_analysis.egg-info/dependency_links.txt
-dynamic_analysis.egg-info/top_level.txt

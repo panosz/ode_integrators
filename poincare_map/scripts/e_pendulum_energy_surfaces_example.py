@@ -7,14 +7,14 @@ from panos_utilities import roots as panos_roots
 from fractions import Fraction
 from pprint import pprint
 import pandas as pd
-import action_integration_ext as ai
+import dynamic_analysis.core as da_core
 
 _colors = ['#1b9e77', '#d95f02', '#7570b3']
 
 M = 1.
-dynamic_system = ai.PendulumDynamicSystem(M)
+dynamic_system = da_core.PendulumDynamicSystem(M)
 option_dict = {'abs_err': 1e-12, 'rel_err': 1e-12, 'dt': 1e-2}
-options = ai.IntegrationOptions(**option_dict)
+options = da_core.IntegrationOptions(**option_dict)
 
 
 def get_p(f, energy):
