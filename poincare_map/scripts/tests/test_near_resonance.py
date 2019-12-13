@@ -1,6 +1,6 @@
 import pytest
 from numpy.testing import assert_array_equal
-import dynamic_analysis.near_resonance as nr
+import dynamic_analysis.orbital.near_resonance as nr
 
 
 def test_Resonance_invalid_string_construction():

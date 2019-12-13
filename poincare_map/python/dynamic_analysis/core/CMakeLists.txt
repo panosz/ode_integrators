@@ -41,6 +41,12 @@ message(STATUS "Boost_LIBRARIES = ${Boost_LIBRARIES}")
 message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}") 
 message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}") 
 
-configure_file(__init__.py ${CMAKE_CURRENT_BINARY_DIR}/__init__.py COPYONLY)
-
+# configure_file(__init__.py ${CMAKE_CURRENT_BINARY_DIR}/__init__.py COPYONLY)
+add_custom_target(core)
+add_dependencies(poincare_map core)
+add_custom_command(
+  TARGET core POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py 
+                ${CMAKE_CURRENT_BINARY_DIR}/__init__.py)
 

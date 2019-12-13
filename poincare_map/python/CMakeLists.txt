@@ -1,7 +1,17 @@
+add_custom_target(dynamic_analysis_package)
+add_dependencies(poincare_map dynamic_analysis_package)
+
+add_custom_command(
+  TARGET dynamic_analysis_package POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/dynamic_analysis/__init__.py 
+                ${CMAKE_CURRENT_BINARY_DIR}/dynamic_analysis/__init__.py)
+
+
+add_custom_command(
+  TARGET dynamic_analysis_package POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/setup.py  
+                ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
+
 add_subdirectory(dynamic_analysis)
-
-
-# configure_file(src/test_action_integration_ext.py ${CMAKE_CURRENT_BINARY_DIR}/test_action_integration_ext.py COPYONLY)
-# configure_file(src/test_action_integration_numerics.py ${CMAKE_CURRENT_BINARY_DIR}/test_action_integration_numerics.py COPYONLY)
-
-configure_file(setup.py ${CMAKE_CURRENT_BINARY_DIR}/setup.py COPYONLY)
