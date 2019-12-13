@@ -31,6 +31,10 @@ class Resonance(object):
                 msg = 'Invalid resonance ratio for {}: {}'
                 raise TypeError(msg.format(cls, numerator))
 
+    @property
+    def ratio(self):
+        return self._ratio
+
     def __eq__(self, other):
         return self.ratio == other
 
@@ -40,16 +44,15 @@ class Resonance(object):
         else:
             return self.ratio > other
 
+    def __hash__(self):
+        return hash(self.ratio)
+
     def __repr__(self):
         cls = self.__class__.__name__
         return f'{cls}({self.ratio.numerator}, {self.ratio.denominator})'
 
     def __str__(self):
         return str(self.ratio)
-
-    @property
-    def ratio(self):
-        return self._ratio
 
     def jacobian(self):
         r = self._ratio.numerator
