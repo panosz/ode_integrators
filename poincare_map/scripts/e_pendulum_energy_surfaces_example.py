@@ -1,8 +1,8 @@
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import itertools
 from mpl_toolkits.axes_grid1 import host_subplot
-from panos_utilities import coprimes
 from panos_utilities import roots as panos_roots
 from fractions import Fraction
 from pprint import pprint
@@ -56,12 +56,10 @@ def make_ratio_set(max_int):
     returns a list of positive and negative ratios constructed from integers in
     the interval [0 max_int]
     """
-    positive_ratio_set = list(coprimes.coprime_fractions(max_int))
-    negative_ratio_set = [- x for x in positive_ratio_set]
-    ratio_set = sorted(negative_ratio_set +
-                       [Fraction(0, 1)] +
-                       positive_ratio_set)
-    return ratio_set
+    num = range(-max_int, max_int+1)
+    den = range(1, max_int+1)
+
+    return sorted({Fraction(n, d) for n, d in itertools.product(num, den)})
 
 
 def resonances_on_energy_surface(energy, ratio_set, f_window, n_samples=15):
@@ -263,7 +261,8 @@ if __name__ == "__main__":
                                                   params['f_window'],
                                                   n_samples=15)
     pprint([[pos_int.hessian() for pos_int in action_integrals]
-           for action_integrals in resonance_data['action_integrals'].tolist()])
+           for action_integrals in
+           resonance_data['action_integrals'].tolist()])
 
     ax2 = plot_resonances(ax, resonance_data)
 
