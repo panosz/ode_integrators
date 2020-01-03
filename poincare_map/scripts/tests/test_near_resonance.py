@@ -69,6 +69,7 @@ def test_Resonance_str():
     assert "1/2" in str(nr.Resonance(2, 4))
 
 
+@pytest.mark.skip(reason="no reason to expect this property")
 def test_not_addable():
     with pytest.raises(TypeError):
         nr.Resonance(2, 4) + nr.Resonance(3, 5)

@@ -4,7 +4,7 @@ import numpy as np
 
 
 @total_ordering
-class Resonance(object):
+class Resonance(Fraction):
 
     """Class for calculating the rotated dynamic system quantities
        near a given resonance ratio
@@ -16,47 +16,32 @@ class Resonance(object):
             iterable must be equivalent (numerator, denominator)
        """
 
-    def __init__(self, numerator, denominator=None):
+    def __new__(cls, numerator, denominator=None):
+        parent_new = super(Resonance, cls).__new__
         try:
-            self._ratio = Fraction(numerator, denominator)
+            self = parent_new(cls, numerator, denominator)
         except ValueError:
-            cls = type(self)
             msg = 'Invalid literal for {}: {}'
-            raise ValueError(msg.format(cls, numerator))
+            raise ValueError(msg.format('Resonance', numerator))
         except TypeError:
             try:
-                self._ratio = Fraction(*numerator)
+                self = parent_new(cls, *numerator)
             except TypeError:
-                cls = type(self)
                 msg = 'Invalid resonance ratio for {}: {}'
-                raise TypeError(msg.format(cls, numerator))
+                raise TypeError(msg.format('Resonance', numerator))
+        return self
 
     @property
     def ratio(self):
-        return self._ratio
-
-    def __eq__(self, other):
-        return self.ratio == other
-
-    def __gt__(self, other):
-        if isinstance(other, Resonance):
-            return self.ratio > other.ratio
-        else:
-            return self.ratio > other
-
-    def __hash__(self):
-        return hash(self.ratio)
+        return Fraction(self.numerator, self.denominator)
 
     def __repr__(self):
         cls = self.__class__.__name__
         return f'{cls}({self.ratio.numerator}, {self.ratio.denominator})'
 
-    def __str__(self):
-        return str(self.ratio)
-
     def jacobian(self):
-        r = self._ratio.numerator
-        s = self._ratio.denominator
+        r = self.numerator
+        s = self.denominator
         return np.array([[r, 0],
                          [-s, 1]])
 
